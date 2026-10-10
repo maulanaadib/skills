@@ -1,0 +1,43 @@
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+
+<!-- END:nextjs-agent-rules -->
+
+## Application Building Context
+
+Read the following files in order before implementing or making any architectural decision:
+
+1. `context/product-context.md` — the why: problem, users, success metrics, non goals
+2. `context/project-overview.md` — the what: product definition, goals, features, and scope
+3. `context/architecture-context.md` — system structure, boundaries, storage model, and invariants
+4. `context/architecture-standards.md` — architecture style, module boundaries, when to split
+5. `context/security-standards.md` — auth, authorization, validation, secrets, compliance
+6. `context/error-handling.md` — error contract, logging, observability
+7. `context/testing-standards.md` — test pyramid, what is tested first, definition of done
+8. `context/data-model.md` — canonical entities, indexes, migration rules
+9. `context/ui-context.md` — theme, colors, typography, canvas design, and component conventions
+10. `context/code-standards.md` — implementation rules and conventions
+11. `context/ai-workflow-rules.md` — development workflow, scoping rules, and delivery approach
+12. `context/progress-tracker.md` — current phase, completed work, open questions, and next steps
+
+Update `context/progress-tracker.md` after each meaningful implementation change. The feature spec's `## Progress Tracker` section names the exact fields to touch.
+
+## Working In One Feature Per Chat
+
+This project is built one feature at a time, one chat at a time. That is deliberate.
+
+- **One feature spec per chat.** Never two. If a change spans two features, split it, or open a second chat.
+- **Start a chat** by naming the feature spec file, or running `/selcy-implement <feature>`. The builder reads this file first, then the context files above, then that one spec.
+- **End a chat** by updating `context/progress-tracker.md` per the spec's `## Progress Tracker` section. If it is not written there, the next chat does not know it happened.
+- **A mistake in one chat must not touch another feature.** That is the whole point of the split. If a fix turns out to cross a boundary, stop and say so instead of editing the other feature's scope.
+
+## Standards Are Contracts, Not Suggestions
+
+The standards files (architecture, security, error handling, testing, data model) are inherited by every feature spec. A feature may add to them but never relax them. If a spec contradicts a standards file, the standards file wins.
+
+## Context Files Are The Spec
+
+Context files define what to build, how to build it, and what the current state of progress is. Always implement against them. Do not infer or invent behavior from scratch.
