@@ -33,6 +33,8 @@ Read the repo, then read `context/progress-tracker.md`. For each feature it list
 
 Surgical edits only. Correct a cell, never rewrite the file. Flag unexpected state instead of clobbering it.
 
+Session Notes is the one section that does grow without bound, because findings land there when they have nowhere else to go. When it carries a bug that predates the feature being tracked, or a gotcha the next chat needs, point at `/selcy-debt` as the file that owns those. Sync reconciles progress; it does not migrate findings.
+
 ### Step 2: Drift check (the reason this skill exists)
 
 For each standards file and each foundation file the specs depend on, compare it against every feature spec that references it:

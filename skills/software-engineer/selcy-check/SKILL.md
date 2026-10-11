@@ -34,7 +34,7 @@ Route on the typed word. Do not mix modes in one run; on `both`, verify first, t
 
 ## Resolving the feature
 
-Same resolution as `/selcy-implement`: read `context/progress-tracker.md`, then match the argument (number or name) against `context/feature-specs/`. No argument → the current feature, the one progress-tracker lists as In Progress, else the last Completed. No bundle → stop, and tell the engineer to run `/selcy-sdd` first.
+Same resolution as `/selcy-implement`: read `context/progress-tracker.md`, then match the argument (number or name) against `context/feature-specs/`. No argument → the current feature, the one progress-tracker lists as In Progress, else the last Completed. No bundle → stop, and tell the engineer to run `/selcy-sdd` first on a new project, or `/selcy-audit` on a codebase that already exists.
 
 ## verify mode
 
@@ -44,7 +44,7 @@ Same resolution as `/selcy-implement`: read `context/progress-tracker.md`, then 
 4. Also check the surfaces the spec names that no checklist item covers: a page that must render, a state the spec lists (loading, empty, error, success). A checklist can miss a surface; the spec's own sections cannot.
 5. Report: passes, failures with observed versus expected behavior, and anything you had to exercise that the spec never specified. That last group is owed decisions, and it goes back to `/selcy-implement`'s gate.
 
-Read only. Never fix, never edit, never commit. A failure points at `/selcy-debug` if it is a bug, or `/selcy-implement` if it is work the feature still owes.
+Read only. Never fix, never edit, never commit. A failure points at `/selcy-debug` if it is a bug, or `/selcy-implement` if it is work the feature still owes. A failure in a surface this feature did not build is a pre-existing bug, not a regression: record it with `/selcy-debt` and keep this feature's verdict honest.
 
 ## review mode
 

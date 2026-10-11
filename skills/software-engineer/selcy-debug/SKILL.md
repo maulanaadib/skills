@@ -22,6 +22,8 @@ Writes the minimal code fix for the root cause. Recommends `/selcy-test` for the
 
 If the bug reveals a flawed decision rather than a coding mistake, it says so and points at `/selcy-sdd specs <feature>` rather than papering over it. A bug caused by a wrong standards file is not fixed by editing code around it.
 
+If the bug predates the change being investigated, it is not this feature's to fix here. Record it with `/selcy-debt` and hand it to the feature that owns it.
+
 ## Execution
 
 ### Step 0: Capture the symptom

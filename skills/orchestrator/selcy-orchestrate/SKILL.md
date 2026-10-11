@@ -27,12 +27,12 @@ This is why the skill is split in two:
 
 All four must be true, or the skill stops and says which one is missing:
 
-1. A `context/` bundle exists in the project directory, written by `/selcy-sdd`.
+1. A `context/` bundle exists in the project directory, written by `/selcy-sdd` or `/selcy-audit`.
 2. `context/progress-tracker.md` names a current goal that is a feature spec in `context/feature-specs/`.
 3. `opencode` is on PATH and can run in the project directory.
 4. The kanban toolset is enabled on this profile (`hermes -p selcy-orchestrator tools enable kanban`). Without it the `kanban_*` tools are not in the schema and the worker cannot close its own card.
 
-The skill never creates a bundle, never edits the feature list, and never runs `/selcy-sdd`. If the bundle is missing, that is a human decision about what to build; tell the engineer to run `/selcy-sdd` first.
+The skill never creates a bundle, never edits the feature list, and never runs `/selcy-sdd` or `/selcy-audit`. If the bundle is missing, that is a human decision about what to build; tell the engineer to run `/selcy-sdd` first on a new project, or `/selcy-audit` on a codebase that already exists.
 
 ## Phase A: Bootstrap the board
 

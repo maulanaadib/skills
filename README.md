@@ -4,11 +4,14 @@ A collection of [Agent Skills](https://agentskills.io/) for spec-driven developm
 
 One repo, two categories. `skills/software-engineer/` holds the spec-driven loop: interview once, then build one feature per chat. `skills/orchestrator/` holds the automation that drives that loop unattended. They are independent — use only the ones a change needs.
 
+The loop has two doors. `/selcy-sdd` is the greenfield one: empty directory, you answer the questions, it writes the bundle. `/selcy-audit` is the brownfield one: the code already exists, it reads the code and writes the bundle from what the code actually says. Same bundle, same downstream skills. Three further skills run out of band on a living project: `/selcy-grill` settles one open decision, `/selcy-debt` records a finding that outlives the chat that found it, and `/selcy-debug` fixes what is broken.
+
 ## The loop
 
 ```mermaid
 flowchart LR
     A["/selcy-sdd<br/>once at start"] --> B["/selcy-implement<br/>one feature"]
+    H["/selcy-audit<br/>once on existing code"] --> B
     B --> C["/selcy-check<br/>before close"]
     B --> D["/selcy-test<br/>after build"]
     C --> E["/selcy-sync<br/>after edit or land"]
@@ -16,11 +19,13 @@ flowchart LR
     E --> B
 
     F["/selcy-debug<br/>anytime it breaks"] -.-> B
+    I["/selcy-debt<br/>record what outlives the chat"] -.-> B
+    J["/selcy-grill<br/>settle one decision"] -.-> B
 
     G["/selcy-orchestrate<br/>drives the whole loop"] ==> B
 ```
 
-Read it as a contract: `/selcy-sdd` runs **once** and writes the spec bundle. Everything after that runs **per feature**, in its own new chat. `/selcy-debug` runs anytime, out of band. `/selcy-orchestrate` replaces the human in the per-feature loop, once, after you approve the plan.
+Read it as a contract: `/selcy-sdd` or `/selcy-audit` runs **once** and writes the spec bundle. Everything after that runs **per feature**, in its own new chat. `/selcy-debug`, `/selcy-debt`, and `/selcy-grill` run anytime, out of band. `/selcy-orchestrate` replaces the human in the per-feature loop, once, after you approve the plan.
 
 ## The skills
 
@@ -29,10 +34,13 @@ One skill per phase. Run only the ones a change needs.
 | Skill | Category | What it does |
 | --- | --- | --- |
 | `selcy-sdd` | software-engineer | Run `/selcy-sdd` once at project start. Interviews you in structured rounds (product, stack, architecture shape, security, error handling, testing, deployment), then batch generates the whole spec-driven development context bundle plus numbered feature specs. Safe to resume in a new chat. |
+| `selcy-audit` | software-engineer | Run `/selcy-audit` once on a codebase that already exists and has no context bundle. Reads the real code and reverse-engineers the same bundle from it, so the rest of the loop works on a project you did not start from scratch. Observes, never invents. |
 | `selcy-implement` | software-engineer | Run `/selcy-implement` to build one feature spec into working code. Reads the context bundle, gates on input coverage so nothing load bearing is invented mid build, builds, runs the spec's Check When Done, updates progress-tracker.md, and commits. One feature per chat. |
 | `selcy-check` | software-engineer | Run `/selcy-check` before closing a feature. `verify` runs the real app and proves the feature behaves per its spec; `review` reads the diff on a fresh model and ranks findings. Read only, never edits code. |
 | `selcy-test` | software-engineer | Run `/selcy-test` after `/selcy-implement` builds a feature. Scopes from git uncommitted changes, reads the testing standards to know what must be covered first, and picks the right strategy per file. Saves the framework choice so it never asks twice. |
 | `selcy-debug` | software-engineer | Run `/selcy-debug` when something is broken. Reproduces the bug on demand, narrows it to the smallest failing surface, fixes the root cause with the smallest change, and hands a regression test to `/selcy-test`. |
+| `selcy-grill` | software-engineer | Run `/selcy-grill` before a change whose design is still open. Interviews you across the design tree, one round at a time, until every branch is resolved, then writes the decision to the standards file that owns it. The interview primitive behind `/selcy-sdd`, usable on its own. |
+| `selcy-debt` | software-engineer | Run `/selcy-debt` when you find a bug that is not yours, or learn a gotcha the next chat needs. Records pre-existing bugs with the feature that owns them and per-module gotchas in `context/debt.md`, so the current chat stays clean and the finding has a home. Never fixes anything. |
 | `selcy-sync` | software-engineer | Run `/selcy-sync` after you edit a context file by hand, or after a feature lands. Reconciles progress-tracker.md against the repo, detects a context file that drifted from the feature specs, and flags specs the change made stale. |
 | `selcy-orchestrate` | orchestrator | Run `/selcy-orchestrate` after `/selcy-sdd` and you approve the plan. Reads progress-tracker.md, delegates one feature at a time to `opencode run`, verifies against the spec's Check When Done, and advances. Unattended, stops only on an owed decision or a failed gate. |
 
@@ -69,9 +77,9 @@ List what is inside before installing:
 npx skills@latest add maulanaadib/skills --list
 ```
 
-**One trade-off to know.** `npx skills add` copies every skill in the repo, so each agent receives all seven even if it will only use a few. The unused ones sit idle; a skill never loads unless its trigger fires. This is the cost of keeping unrelated skills in one repo instead of one repo per skill.
+**One trade-off to know.** `npx skills add` copies every skill in the repo, so each agent receives all ten even if it will only use a few. The unused ones sit idle; a skill never loads unless its trigger fires. This is the cost of keeping unrelated skills in one repo instead of one repo per skill.
 
-The orchestrator has an extra step the other six do not. It needs a Hermes profile and the kanban toolset, because the dispatcher is what spawns it. If you only want the spec-driven loop, install with `-a opencode` and never set up Hermes; `selcy-orchestrate` will not fire. Full walkthrough: **[docs/orchestrator-runbook.md](docs/orchestrator-runbook.md)**.
+The orchestrator has an extra step the other nine do not. It needs a Hermes profile and the kanban toolset, because the dispatcher is what spawns it. If you only want the spec-driven loop, install with `-a opencode` and never set up Hermes; `selcy-orchestrate` will not fire. Full walkthrough: **[docs/orchestrator-runbook.md](docs/orchestrator-runbook.md)**.
 
 ---
 
@@ -146,6 +154,35 @@ context/
 
 - **One feature spec per chat.** Never two. This is what keeps a mistake in one chat from touching the others, and what makes each chat cheap to throw away and redo.
 - **Progress lives in `progress-tracker.md`, never in chat memory.** If it is not written to that file, the next chat does not know it happened.
+
+### `/selcy-audit` — the brownfield door
+
+**Run once, on a codebase that already exists and has no `context/` bundle.** The counterpart of `/selcy-sdd` for a project you did not start from scratch: inherited, maintained, legacy, or your own project from before this loop.
+
+`/selcy-sdd` interviews you and writes the bundle from your answers. `/selcy-audit` reads the code and writes the bundle from **what the code actually says**. Same output shape, opposite direction, so every downstream skill works unchanged.
+
+**Commands:**
+
+```bash
+/selcy-audit              # full audit: read the repo, write the bundle, report the gaps
+/selcy-audit verify       # read only: compare an existing bundle against the repo
+/selcy-audit data-model   # re-audit one context file only
+```
+
+**The one rule that makes it safe: the code is the source of truth, not you, and not the engineer.** Anything the manifest, the lockfile, the config, the migrations, the schema, or the tests can tell you, you read. Only what no file can answer becomes a question, and only after you have looked. If nothing in the repo settles a field, it is written as `not evident from the repo` and reported as a gap.
+
+A bundle with honest gaps is a map with blank spots. A bundle with invented facts is a map with wrong roads. Only one of them gets you lost.
+
+**What it does, in order:**
+
+1. Surveys the whole repo before writing anything — manifest and lockfile, framework config, migrations and schema, auth config, route tree, test config, CI, Dockerfile, `.env.example`, existing docs, and `git log`. Sub-agents do the heavy reading, because a large codebase is more than one context window.
+2. Writes the same files `/selcy-sdd` writes, in the same shape, quoting the source of every fact. It writes the code as it is, not as it should be: inconsistent error handling is recorded as inconsistent, because that is what a builder is actually working with.
+3. Asks one batched panel of only what the code cannot answer — usually product intent, and decisions the code deliberately punted on.
+4. Reports the bundle, the gaps, and the findings. Findings are candidates for `/selcy-debt`.
+
+**`verify` mode is read only.** It compares an existing bundle against the code and reports three kinds of disagreement: **stale** (the bundle names something the code no longer has), **missing** (the code has something the bundle never recorded), and **wrong** (both name it, they disagree). It never edits; `/selcy-sync` acts on the report.
+
+It never invents a fact to fill a gap, never overwrites a bundle or a hand-written file without asking, and never fixes the findings it surfaces.
 
 ### `/selcy-implement` — the builder
 
@@ -270,6 +307,65 @@ Naming the source in **Expected** matters. If no source names the expected behav
 It never fixes a symptom it cannot explain, never stacks changes until something works, never refactors unrelated code while in there, and never adds a feature even one the bug obviously suggests.
 
 **One important behavior:** if the bug reveals a flawed decision rather than a coding mistake, it points at `/selcy-sdd specs <feature>` rather than papering over it. A bug caused by a wrong standards file is not fixed by editing code around it.
+
+### `/selcy-grill` — one decision, settled
+
+**Run before a change whose design is still open.** The interview primitive behind `/selcy-sdd`, on its own, on one decision in a running project.
+
+You run it instead of guessing. You have a change in mind, you can feel the design is not settled, and you know that if you start building now the builder will either invent the answer or stop and ask mid build. This settles it first.
+
+**When to run it:** before a change with two or three plausible shapes; when `/selcy-implement`'s gate failed on an owed decision; when you disagree with a standards file; when `/selcy-debug` said the decision was wrong, not the code.
+
+Do not run it for a change with one obvious implementation. Grilling a settled question wastes everyone's time and trains you to skip the skill when the question is hard.
+
+**How it works:**
+
+The decision is a **tree**, not a list. It works the tree in **rounds**, and each round asks the whole **frontier**: every question whose prerequisites are already settled. A question that depends on another question still open belongs to a later round. Each round of answers reshapes the tree, so the interview never asks something it is about to invalidate.
+
+Every question is a decision panel with 2–4 concrete options, each with a one line consequence, and exactly one marked `(recommended)` with a one line why. Worded so "yes" accepts the recommendation.
+
+**Finding facts is its job, never yours.** When a frontier question needs a fact, it reads the code, the config, or the bundle. "Which fields does the Invoice have" is answered by `schema.prisma`, and the schema is more likely to be right than your memory of it.
+
+It ends with one confirmation round — the whole decision shown back, every resolved branch with its source — and only then writes anything.
+
+**Where the decision goes:**
+
+- A `context/` bundle exists → the standards file that owns it, as a surgical edit. Then `/selcy-sync`, because a standards change may have made specs stale.
+- No bundle → `decisions/` at the project root, one dated file per decision. If `/selcy-audit` runs later, that directory is the first place it looks.
+- Load bearing and hard to reverse → also an ADR, but only when it is all three: hard to reverse, surprising without context, and the result of a real trade off. Otherwise the line in the standards file is enough and an ADR is ceremony.
+
+It never builds anything, never asks a question it could answer by reading, and never skips the confirmation round.
+
+### `/selcy-debt` — what outlives this chat
+
+**Run when you find a bug that is not yours, or learn a gotcha the next chat needs.** Records both in `context/debt.md`, so the current chat stays clean and the finding has a home.
+
+Two things pile up in a running project and have nowhere to go:
+
+1. **A pre-existing bug found while building feature N that belongs to feature M.** Not a regression from your feature, and not yours to fix inside this feature's scope. Without this skill, one of three things happens: you fix it now and blow through the feature's scope, you write it in chat and the next chat never sees it, or it lands in `progress-tracker.md` Session Notes where it sits unowned until someone re-trips it.
+2. **A gotcha.** The seed script only works with the flags in one order. The E2E suite has to start before the dev server. The Dockerfile copies `prisma` before it can generate the client, so a schema change needs a clean build. Hard won, expensive to relearn, and currently accumulating without bound.
+
+**Commands:**
+
+```bash
+/selcy-debt              # record mode: you bring the finding, it writes it down
+/selcy-debt list         # read only: grouped by owner, open first, resolved last
+/selcy-debt auth         # read only, filtered to one module — run before you touch it
+/selcy-debt resolve 4    # mark one finding resolved, with the how and the commit
+/selcy-debt triage       # assign an owner to every unowned finding, one panel
+```
+
+**The one rule that makes it work: the bug gets an owner, and the owner is a feature, not a person.** The owner is the feature whose scope the fix falls inside — never the feature that found it, which goes in a separate `found-while` field. Cross cutting findings are `foundation`. Findings with no clear owner are `unowned`, which means *triage me*. Those three are the only options.
+
+That distinction is the whole value: feature 07 finds the bug, feature 03 owns it, and feature 07's chat does not have to fix it to close.
+
+**Every row requires evidence.** "The select component is broken" is not a finding. "Every `Select.Value` renders `undefined` because the shared wrapper does not forward the slot prop, reproduced on `/customers` and `/settings`" is a finding. If you cannot state how you know, you have not found it yet.
+
+After recording, it answers one question out loud: **does the current feature still ship?** Yes, the finding is outside its scope → finish the feature and name the exact next step for it, a new chat running `/selcy-debug` or `/selcy-implement` scoped to the owner. No, it blocks → say so and stop, rather than fixing another feature from inside this chat. Unsure → ask.
+
+Rows are never deleted or renumbered; resolving edits `status` in place, and the resolved rows are the audit trail.
+
+It never fixes the finding it records — recording is its entire job, and a skill that both records and fixes ends up fixing from inside the wrong feature's chat. It never writes to `progress-tracker.md` Session Notes; that is where the unbounded growth came from.
 
 ### `/selcy-sync` — the honesty check
 
@@ -396,17 +492,45 @@ You want the whole build unattended after approving the plan:
 /selcy-orchestrate
 ```
 
+## An existing project
+
+The loop above assumes you started it. Most projects are not started by you.
+
+```bash
+# The code already exists. No context/ bundle. Read it, write the bundle from it.
+/selcy-audit
+
+# It reports gaps (fields the repo cannot answer) and findings (problems in the code).
+# Record the findings before they get lost.
+/selcy-debt
+
+# Now the rest of the loop works unchanged.
+/selcy-implement 03
+```
+
+Not sure the bundle still matches the code after months of manual edits:
+
+```bash
+/selcy-audit verify      # read only: reports stale, missing, and wrong
+```
+
+About to touch something whose design is still open, and the bundle does not settle it:
+
+```bash
+/selcy-grill             # settles it, writes it to the standards file
+```
+
 ## Why this exists
 
 The `/scope` and `/architect` style of skill is deliberately one decision at a time. That is correct for a living project, but expensive at project start, when you want the whole context bundle written once and then forgotten about. `/selcy-sdd` front loads the interview, then batch writes.
 
 It also closes the gaps where a builder most often hallucinates: security rules, architecture shape, the error contract, the testing contract, the data model, money and timezone handling, and the environment variable list. Each is decided once, written to a standards file, and inherited by every feature spec.
 
-The seven skills exist because each is a distinct job with a distinct contract, and mixing them is what causes the failures they prevent: a builder that reviews its own code shares its own blind spots (`selcy-check`), a test suite that proves the tests but not the spec (`selcy-check verify`), a fix that silences a symptom without explaining it (`selcy-debug`), a standards edit that silently invalidates specs nobody regenerates (`selcy-sync`), and a human bottleneck the loop does not actually need (`selcy-orchestrate`).
+The ten skills exist because each is a distinct job with a distinct contract, and mixing them is what causes the failures they prevent: a builder that reviews its own code shares its own blind spots (`selcy-check`), a test suite that proves the tests but not the spec (`selcy-check verify`), a fix that silences a symptom without explaining it (`selcy-debug`), a standards edit that silently invalidates specs nobody regenerates (`selcy-sync`), a decision settled in chat and lost by the next one (`selcy-grill`), a finding that outlives the chat that found it and gets re-tripped (`selcy-debt`), a project that already exists and cannot get through the greenfield door (`selcy-audit`), and a human bottleneck the loop does not actually need (`selcy-orchestrate`).
 
 ## Requirements
 
-Any Agent Skills client: Claude Code, OpenCode, Codex, Cursor, GitHub Copilot, Gemini CLI, Windsurf, and [75 more](https://agentskills.io/clients). No runtime, no service, no tokens. `git` is the only required CLI for the six spec-driven skills, used by `/selcy-test`, `/selcy-check review`, and `/selcy-sync`.
+Any Agent Skills client: Claude Code, OpenCode, Codex, Cursor, GitHub Copilot, Gemini CLI, Windsurf, and [75 more](https://agentskills.io/clients). No runtime, no service, no tokens. `git` is the only required CLI for the nine spec-driven skills, used by `/selcy-test`, `/selcy-check review`, and `/selcy-sync`.
 
 `/selcy-orchestrate` is the exception. It additionally requires a Hermes profile with the kanban toolset and `opencode` on PATH. See **[docs/orchestrator-runbook.md](docs/orchestrator-runbook.md)**.
 

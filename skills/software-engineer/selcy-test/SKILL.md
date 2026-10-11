@@ -68,7 +68,7 @@ Write the tests next to the code, following the project's existing test layout. 
 
 ### Step 6: Run or hand off
 
-Run the suite, or hand back the exact commands. If it runs and anything is red, that is a finding for `/selcy-implement`, not a thing to fix here: this skill writes tests, it does not fix the code they cover.
+Run the suite, or hand back the exact commands. If it runs and anything is red, that is a finding for `/selcy-implement`, not a thing to fix here: this skill writes tests, it does not fix the code they cover. If the red is in code this feature did not touch, it is pre-existing: record it with `/selcy-debt` and keep this feature's suite honest about what it proved.
 
 ## What this skill never does
 

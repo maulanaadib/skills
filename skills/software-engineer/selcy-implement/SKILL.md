@@ -42,7 +42,7 @@ One command, intent inferred from state:
 
 Read `context/progress-tracker.md` first. Then:
 
-- No `context/` bundle at all → stop. Tell the engineer to run `/selcy-sdd` first; there is nothing to build from.
+- No `context/` bundle at all → stop. Tell the engineer to run `/selcy-sdd` first on a new project, or `/selcy-audit` on a codebase that already exists; there is nothing to build from either way.
 - No feature spec found for the argument → stop, and list what is in `context/feature-specs/`.
 - Feature already Completed and this is not a `rework` → warn, and ask whether to rework or pick another.
 - Otherwise → proceed, and say in one line which feature you resolved and how.
@@ -122,6 +122,8 @@ A red item is a stop condition, not a thing to commit around. Fix it before Step
 Per the spec's `## Progress Tracker` section, which names the exact fields. Move the feature from Next Up to In Progress (if it was not already), then to Completed when Step 4 passes. Add the open questions the feature raises or resolves, the architecture decisions it records, and one line of session notes so the next chat can resume.
 
 Do not touch other features' rows. If this build turned out to cross a feature boundary, stop and say so instead of editing another spec's scope.
+
+If the build surfaced a bug that predates it, in another feature's code, do not fix it here. Record it with `/selcy-debt` and finish this feature. Fixing another feature from inside this chat is scope creep in the exact shape this loop exists to prevent, and the finding would be lost when this chat closes.
 
 ### Step 6: Commit and push
 

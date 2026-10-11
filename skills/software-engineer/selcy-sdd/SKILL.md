@@ -12,6 +12,8 @@ After it runs, you never need it again for this project. You build each feature 
 
 It exists because `/scope` and `/architect` are deliberately one decision at a time. That is correct for a living project, but expensive at project start, when you want the whole context bundle written once and then forgotten about. This skill front loads the interview, then batch writes.
 
+It is the greenfield door. On a codebase that already exists, the door is `/selcy-audit`, which reads the code and writes the same bundle from it. On a decision that is still open later in the project, the interview is available on its own as `/selcy-grill`.
+
 ## The loop it hands off to
 
 This is the workflow the generated files are shaped for. Read it as the contract the output must serve:
