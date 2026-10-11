@@ -42,7 +42,7 @@ One skill per phase. Run only the ones a change needs.
 | `selcy-grill` | software-engineer | Run `/selcy-grill` before a change whose design is still open. Interviews you across the design tree, one round at a time, until every branch is resolved, then writes the decision to the standards file that owns it. The interview primitive behind `/selcy-sdd`, usable on its own. |
 | `selcy-debt` | software-engineer | Run `/selcy-debt` when you find a bug that is not yours, or learn a gotcha the next chat needs. Records pre-existing bugs with the feature that owns them and per-module gotchas in `context/debt.md`, so the current chat stays clean and the finding has a home. Never fixes anything. |
 | `selcy-sync` | software-engineer | Run `/selcy-sync` after you edit a context file by hand, or after a feature lands. Reconciles progress-tracker.md against the repo, detects a context file that drifted from the feature specs, and flags specs the change made stale. |
-| `selcy-orchestrate` | orchestrator | Run `/selcy-orchestrate` after `/selcy-sdd` and you approve the plan. Reads progress-tracker.md, delegates one feature at a time to `opencode run`, verifies against the spec's Check When Done, and advances. Unattended, stops only on an owed decision or a failed gate. |
+| `selcy-orchestrate` | orchestrator | Run `/selcy-orchestrate` after `/selcy-sdd` and you approve the plan. Reads progress-tracker.md, delegates one feature at a time to `opencode run`, resumes that same session if the build is interrupted instead of starting a new one, runs an independent review session and an independent test session, verifies against the spec's Check When Done, and advances. Unattended, stops only on an owed decision or a failed gate. |
 
 ---
 
@@ -432,23 +432,38 @@ It never creates a bundle, never edits the feature list, and never runs `/selcy-
 **The loop it runs:**
 
 1. **Read `progress-tracker.md`.** Current Phase, Current Goal, Completed, In Progress. The file is the only source of truth; the orchestrator forgets between turns.
-2. **Delegate one feature.** One feature per card, chained in order so a failure stays contained.
+2. **Delegate one feature.** One feature per card, chained in order so a failure stays contained. The first delegation creates a build session named `feat-<NN>-<slug>` and **records the session id in the card**.
 3. **Wait.** Never background it, never time it out and move on.
-4. **Verify.** Green output is a claim, not proof. It checks the spec's `## Check When Done` against the builder's output, and re-reads the tracker to confirm the builder itself moved the feature to Completed.
-5. **Advance.** If it passed, loop to step 1 for the next feature.
-6. **Stop.** If it failed, or the builder asked a question the bundle does not answer, it stops and reports. Never retries blindly, never answers an owed decision, never edits the spec to make a failure go away.
+4. **Review**, in a new session `feat-<NN>-<slug>-review`, on a **different model than the one that built it**. The reviewer reads the spec and the code on disk and reports findings only — it never edits code. A model reviewing its own output shares its own blind spots.
+5. **Test**, in a new session `feat-<NN>-<slug>-test`, on a different model. The tester writes the suite from scratch from the spec, not from the builder's reasoning, and runs it.
+6. **Verify.** Green output is a claim, not proof. It checks the spec's `## Check When Done`, the reviewer's findings, the test result, and re-reads the tracker to confirm the builder itself moved the feature to Completed.
+7. **Advance.** If it all passed, loop to step 1 for the next feature.
+8. **Stop.** If it failed, or the builder asked a question the bundle does not answer, it stops and reports. Never retries blindly, never answers an owed decision, never edits the spec to make a failure go away.
 
-**The three stop conditions:**
+**The session contract, which is what keeps the run auditable:**
+
+| Work | Session | Resumed? |
+| --- | --- | --- |
+| Build | `feat-<NN>-<slug>` | Yes — an interrupted build resumes this session |
+| Review | `feat-<NN>-<slug>-review` | No, always new |
+| Test | `feat-<NN>-<slug>-test` | No, always new |
+
+Without this, one feature ends up as `feat-04`, `feat-04-r1`, `feat-04-r2` running side by side and you cannot tell which is real. The session id in the card is what makes a resume possible at all, which is why the worker writes it **before** the run finishes, not after — a worker that dies mid-build has to leave a session behind that the next tick can find.
+
+The worker never deletes sessions. If the list has probe sessions, it names them in the card and leaves them for you to remove.
+
+**The four stop conditions:**
 
 | Kind | What happened | What it surfaces |
 | --- | --- | --- |
 | **Failed** | The build errored | The error and the spec section it was working on |
 | **Owed decision** | The builder asked a question the bundle does not answer | The question verbatim. It never answers it, never picks the recommended option on your behalf |
 | **Gate mismatch** | The builder claimed done but a `Check When Done` item is unaddressed, or the tracker did not advance | Which item |
+| **Review or test failure** | The reviewer found a blocking issue, or a test is red | The finding verbatim, and which session produced it |
 
 A single feature failure stops the loop, because the next feature may be built on a broken foundation.
 
-**What it never does:** never writes application code, never edits a file under `context/`, never answers an owed decision, never batches features, never marks a feature complete, and never runs the other six skills itself.
+**What it never does:** never writes application code, never edits a file under `context/`, never answers an owed decision, never batches features, never marks a feature complete, never creates a second build session for a feature that already has one, and never runs the other nine skills itself.
 
 Full setup walkthrough: **[docs/orchestrator-runbook.md](docs/orchestrator-runbook.md)**.
 

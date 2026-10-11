@@ -161,6 +161,18 @@ opencode session list
 opencode export <session-id>
 ```
 
+The session names are the contract, and they are what keeps the list readable:
+
+| Work | Session | Resumed? |
+| --- | --- | --- |
+| Build | `feat-<NN>-<slug>` | Yes — an interrupted build resumes this session, it never spawns a sibling |
+| Review | `feat-<NN>-<slug>-review` | No, always new, different model |
+| Test | `feat-<NN>-<slug>-test` | No, always new, different model |
+
+If you see `feat-04` and `feat-04-r1` side by side, that is the old failure mode and it is fixed: the worker records the session id in the card and resumes it on the next tick instead of starting over. One feature, one build session, however many interruptions it takes.
+
+The worker never deletes sessions itself. If the list has probe sessions (`QWEN_OK`, `MIMO_OK`, smoke tests, empty runs), the worker names them in the card and leaves them for you to remove — deleting them silently removes the evidence that a probe ran.
+
 ### Phase 4: when it stops
 
 It stops for one of three reasons. Each has a different response:
@@ -169,6 +181,7 @@ It stops for one of three reasons. Each has a different response:
 | --- | --- |
 | **Owed decision** — the builder asked a question the bundle does not answer | Answer it. Then edit `context/` if the answer is a new rule, and unblock the card. |
 | **Failed** — the build errored | Read the opencode session for the error. Fix the environment or the code, then unblock. Do not blindly re-run. |
+| **Review or test failure** — the reviewer found a blocking issue, or a test is red | Read the `-review` or `-test` session for the finding. The fix goes back to the build session, not a new one. |
 | **Gate mismatch** — the builder claimed done but a checklist item is unaddressed | Read the opencode session. Either the item is genuinely missing, or the spec is wrong. Fix one of them, then unblock. |
 
 Resuming never restarts anything. The board is the state:
