@@ -124,14 +124,14 @@ Two rules about the interview:
 /selcy-sdd resume       # continue after a chat died mid-interview
 /selcy-sdd specs        # regenerate every feature spec from current state
 /selcy-sdd specs 04-debt-entry   # regenerate or add one feature spec only
-/selcy-sdd context      # regenerate only the context files plus AGENTS.md
+/selcy-sdd context      # regenerate only the context files plus the root AGENTS.md
 ```
 
 **What it writes:**
 
 ```text
+AGENTS.md                    # the read order, at the PROJECT ROOT, where agents auto-load it
 context/
-  AGENTS.md                  # the read order, the entry point every later chat reads first
   product-context.md         # the why: problem, users, success metrics, non goals
   project-overview.md        # the what: product definition, goals, features, scope
   progress-tracker.md        # current phase, completed work, open questions, next steps
@@ -202,7 +202,7 @@ It turns one feature spec into working code. Nothing else in the bundle is in sc
 **What it does, in order:**
 
 1. Reads `progress-tracker.md`, resolves the feature, says which one and how.
-2. Reads `AGENTS.md` and follows its read order exactly, then the one feature spec. It does **not** read other feature specs.
+2. Reads `AGENTS.md` at the project root and follows its read order exactly, then the one feature spec. It does **not** read other feature specs.
 3. **The input coverage gate.** Before writing any code, it enumerates every value the build must produce and checks each against the bundle for a named source. Any required value with no named source is an owed decision, and it stops and asks rather than inventing.
 4. Builds, treating the standards files as contracts. A feature may add to them, never relax them. If a spec contradicts a standards file, the standards file wins.
 5. Runs the spec's `## Check When Done`, then lint, typecheck, and tests.

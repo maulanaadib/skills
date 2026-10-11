@@ -74,7 +74,7 @@ Dispatch sub-agents for the heavy reading. A large codebase is more than one con
 
 Write the same files `/selcy-sdd` writes, in the same shape, so downstream skills need no adaptation:
 
-- `context/AGENTS.md` — the read order. Last, because it points at the others.
+- `AGENTS.md` at the **project root** — the read order. Last, because it points at the others. Root, not `context/`, because that is where agents auto-load it from.
 - `context/architecture-context.md` — stack table from the manifest, system boundaries from the service topology, storage model, auth model, invariants, and the env var table from `.env.example` or the compose file.
 - `context/data-model.md` — from the schema and migrations. Entities, fields, indexes, relations, and the migration rule the repo actually follows (which migrations exist, whether they are forward only).
 - `context/architecture-standards.md` — module boundaries from the real folder structure, dependency direction from the real imports, split triggers inferred from how the code is actually divided.
@@ -92,7 +92,7 @@ Rules that apply to every file:
 - **Quote, then label.** When you write a fact, it came from somewhere. Say where. A stack row with no source is a guess wearing a contract's clothes.
 - **Write the code as it is, not as it should be.** If the error handling is inconsistent across routes, `error-handling.md` says it is inconsistent and names the shapes it found. That is a useful contract, because it tells a builder exactly what they are working with. A cleaned up version is a lie a builder will trust.
 - **A gap is a finding, not a hole to fill.** No migrations directory is a finding about the migration rule. No tests is a finding about the testing pyramid. Write it down plainly; the engineer decides whether to fix it, and `/selcy-debt` is where it gets recorded.
-- **Never overwrite a file the engineer wrote by hand without asking.** If an `AGENTS.md` or a `README` already carries conventions, quote it into the bundle and credit it, rather than rewriting it in your own words.
+- **Never overwrite a file the engineer wrote by hand without asking.** If an `AGENTS.md` or a `README` already carries conventions, quote it into the bundle and credit it, rather than rewriting it in your own words. This applies to the root `AGENTS.md` too, which this skill writes: if one already exists and it does not carry the generated marker, ask before replacing it.
 
 ## Step 3: Ask only what the code cannot answer
 

@@ -15,7 +15,7 @@ It exists because a generic builder skill pointed at a different file convention
 ## The loop it serves
 
 1. New chat. Run `/selcy-implement`, or `/selcy-implement <feature>`.
-2. The builder resolves the feature, reads `context/AGENTS.md`, then the context files it names, then the one feature spec.
+2. The builder resolves the feature, reads `AGENTS.md` at the project root, then the context files it names, then the one feature spec.
 3. It gates: every value the build must produce has a named source in the bundle, or it stops and asks.
 4. It builds, following the standards files as contracts.
 5. It runs the spec's `## Check When Done`, then lint, typecheck, and tests.
@@ -49,7 +49,9 @@ Read `context/progress-tracker.md` first. Then:
 
 ### Step 1: Load the bundle
 
-Read `context/AGENTS.md` and follow its read order exactly: it lists the context files in the order a builder needs them. Then read the one feature spec.
+Read `AGENTS.md` at the project root and follow its read order exactly: it lists the context files in the order a builder needs them. Then read the one feature spec.
+
+**Where it lives matters.** The read order is at the **project root**, not under `context/`, because that is the file agents auto-load. If you find a `context/AGENTS.md` instead, read it — it is a bundle from before the root convention, and the bundle is still the bundle — but say so in one line, because that project needs the one-time move `/selcy-sdd` documents.
 
 Do not read other feature specs. They are out of scope, and reading them invites scope creep.
 

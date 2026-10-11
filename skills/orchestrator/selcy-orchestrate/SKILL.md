@@ -150,7 +150,7 @@ opencode run --dir <project-dir> --session ses_<id> --auto "Continue building th
 Rules that make this safe:
 
 - **The message is a pointer, not a brief.** Do not paraphrase the spec, do not add requirements, do not scope it.
-- **Name the spec and the tracker, nothing else.** The form is: *read `context/feature-specs/<NN-name>.md`, update `context/progress-tracker.md` as needed, then implement exactly as specified.* Do not tell the builder to read `context/AGENTS.md` — the project-root `AGENTS.md` is auto-loaded by the builder, and instructing it to read the copy under `context/` confuses it about which one governs. Do not add negative instructions ("do not read X") either; name what to read, positively.
+- **Name the spec and the tracker, nothing else.** The form is: *read `context/feature-specs/<NN-name>.md`, update `context/progress-tracker.md` as needed, then implement exactly as specified.* The builder's read order comes from the root `AGENTS.md`, which `opencode` auto-loads — do not name it in the prompt, and do not name the `context/` copy, which is the pre-root-convention location and confuses the builder about which one governs. Do not add negative instructions ("do not read X") either; name what to read, positively.
 - **One feature per run.** Never two. A failure must stay contained to one feature.
 - **`--dir` pins the working directory.** The worker may be running from elsewhere; the build must happen in the project directory.
 - **Heartbeat while you wait.** `opencode run` is synchronous and can take many minutes. Call `kanban_heartbeat(note="delegated <NN> to opencode run, waiting")` while it runs, at least once an hour. Without a heartbeat the dispatcher may reclaim the card mid-build and you lose the run.
