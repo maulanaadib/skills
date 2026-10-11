@@ -32,7 +32,7 @@ Five pieces, each with one job:
 | --- | --- | --- |
 | `selcy-orchestrator` profile | Read the card, delegate one feature, verify, close the card | `~/.hermes/profiles/selcy-orchestrator/` |
 | `SOUL.md` | The worker's rules: never build, never edit specs, never answer owed decisions | Same folder |
-| `selcy-orchestrate` skill | The two phases: bootstrap the board, then the worker loop | This repo, `skills/selcy-orchestrate/SKILL.md` |
+| `selcy-orchestrate` skill | The two phases: bootstrap the board, then the worker loop | This repo, `skills/orchestrator/selcy-orchestrate/SKILL.md` |
 | Kanban board | The trigger and the state. One card per feature, chained in order | `~/.hermes/kanban.db` |
 | Gateway dispatcher | The event loop. Claims a ready card every 60s and spawns the worker | Runs as a background service |
 
