@@ -194,6 +194,12 @@ hermes kanban unblock <card-id>         # back to ready; next tick resumes it
 
 The worker reads `progress-tracker.md` first, so it picks up wherever the loop stopped.
 
+**The worker tells you when it blocks, in its reply, not only in the card.** A blocked card is a request for a decision and you are not watching the board. If you find a block hours late, or answer a question the builder asked without ever being told it was asked, that is this rule failing. The reply names the feature, the kind of block, the question or error verbatim, and the command to resume.
+
+**The worker does not give time estimates.** A build's duration depends on the model, the provider, the feature's real size, and how many owed decisions surface, none of which the worker can see. An estimate you arrange your day around and then miss is worse than no estimate. It reports **state** instead — what phase the build is in, what it has written, what it is waiting on — which is verifiable and does not expire. The heartbeat is the mechanism for this: it proves the run is alive without predicting when it finishes.
+
+**The worker uses a push credential you have already approved.** When a push fails with a permission error and you have named an approved credential, the worker uses it rather than blocking. A card that sits blocked for hours on a 403, while the approved credential sits unused, is a worker waiting for permission it already has. If no credential has been approved, **then** it asks — and says the push is otherwise complete.
+
 ## The rules that keep this safe
 
 These are in `SOUL.md` and in the skill. They are the reason unattended is safe here:
@@ -204,6 +210,8 @@ These are in `SOUL.md` and in the skill. They are the reason unattended is safe 
 - **The orchestrator never edits `context/`.** Those are contracts. A wrong spec is a human decision.
 - **The orchestrator never answers an owed decision.** It surfaces the question verbatim and blocks. It never picks the recommended option on your behalf.
 - **A failed build is never auto-retried.** The card stays blocked until a human unblocks it. A retry without new information is the same failure again.
+- **The worker never gives a time estimate for a build.** It reports state, not duration.
+- **The worker never waits on you for a credential you already approved.** It uses it, and only asks when none has been approved.
 - **Green output is not proof.** The worker verifies against the spec's `Check When Done` and re-reads the tracker to confirm the builder itself advanced it.
 - **Progress is in the files, not in the agent.** The worker forgets between spawns and reads `progress-tracker.md` at the start of every run. The board carries the state, not the model.
 

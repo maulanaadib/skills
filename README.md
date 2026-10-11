@@ -438,7 +438,7 @@ It never creates a bundle, never edits the feature list, and never runs `/selcy-
 5. **Test**, in a new session `feat-<NN>-<slug>-test`, on the model you named for test. The tester writes the suite from scratch from the spec, not from the builder's reasoning, and runs it.
 6. **Verify.** Green output is a claim, not proof. It checks the spec's `## Check When Done`, the reviewer's findings, the test result, and re-reads the tracker to confirm the builder itself moved the feature to Completed.
 7. **Advance.** If it all passed, loop to step 1 for the next feature.
-8. **Stop.** If it failed, or the builder asked a question the bundle does not answer, it stops and reports. Never retries blindly, never answers an owed decision, never edits the spec to make a failure go away.
+8. **Stop.** If it failed, or the builder asked a question the bundle does not answer, it stops and reports. Never retries blindly, never answers an owed decision, never edits the spec to make a failure go away. It tells you in its reply, not only in the card — a blocked card is a request for a decision, and you are not watching the board.
 
 **The session contract, which is what keeps the run auditable:**
 
@@ -463,7 +463,7 @@ The worker never deletes sessions. If the list has probe sessions, it names them
 
 A single feature failure stops the loop, because the next feature may be built on a broken foundation.
 
-**What it never does:** never writes application code, never edits a file under `context/`, never answers an owed decision, never batches features, never marks a feature complete, never creates a second build session for a feature that already has one, and never runs the other nine skills itself.
+**What it never does:** never writes application code, never edits a file under `context/`, never answers an owed decision, never batches features, never marks a feature complete, never creates a second build session for a feature that already has one, never runs the other nine skills itself, never gives a time estimate for a build (it reports state instead, which is verifiable and does not expire), and never waits on you for a push credential you already approved.
 
 Full setup walkthrough: **[docs/orchestrator-runbook.md](docs/orchestrator-runbook.md)**.
 

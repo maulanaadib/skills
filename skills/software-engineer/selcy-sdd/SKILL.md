@@ -128,6 +128,17 @@ From the approved plan, fix the ordered feature list and numbering. **`00-projec
 
 Write the list to state.
 
+**Split oversized features before the list is frozen.** A feature spec that is too large is not a feature, it is several, and the cost of discovering that mid build is a confused builder, many iterations, and a build that has to be abandoned and restarted. The signal is not line count alone; it is any of:
+
+- **More than one module.** A feature that touches auth, invoices, and PDF rendering is three features that happen to be described together.
+- **More than one distinct user-facing surface with its own state.** A page plus a background job plus a settings panel.
+- **A piece that could ship and be verified on its own.** If one part of the feature has a working `## Check When Done` without the other parts, it is a separate feature.
+- **Roughly more than a dozen `## Check When Done` items.** Beyond that the builder loses the thread of what it is proving.
+
+When a feature trips any of these, split it into parts that each stand alone, and letter them instead of renumbering: `11-audit-maintenance`, `11-backup-restore`, `11-deploy-acceptance`. The parent number keeps the relationship visible and the letters keep the order. Never renumber existing features to make room — a lettered suffix is how a split avoids breaking every file that already references `NN-name`.
+
+Say the split out loud in the report, with the reason. The engineer may disagree and want it whole; that is their call, and a split proposed at the feature list stage costs one sentence to undo, while a feature discovered to be too large mid build costs a restart.
+
 ### Step 3: Generate the context bundle
 
 Read every file in `templates/` except `templates/feature-spec.md` and `templates/project-setup.md`, then write them all in one pass. Every ALL_CAPS placeholder in a template is an input you already gathered in the interview; apply each as you read.
@@ -145,10 +156,11 @@ Read `decision-gate.md` in full, then process features in order, `00-project-set
 1. Enumerate the decisions that feature requires (data model, integrations, UI composition, behavior, edge and error handling, security), using `decision-gate.md`.
 2. Resolve each against state and the generated context files. Already answered → fill it in, silently.
 3. Unresolved → collect them and ask, batched, one round for that feature. This is the only place generation pauses. If a feature resolves fully, write it without asking and say so.
-4. Read `templates/feature-spec.md` (or `templates/project-setup.md` for feature 00), write `context/feature-specs/NN-kebab-name.md`.
-5. **Every spec ends with a mandatory `## Progress Tracker` section** naming the exact `progress-tracker.md` fields to update when the feature lands. This is what makes the per chat loop work without the engineer repeating instructions.
-6. **Every spec except `00-project-setup` carries a `## Commit and Push` section** with the fixed order: `Check When Done` passes, tests green, lint and typecheck green, then ask which branch (main versus a new branch), then commit and push. Never commit on a red test, never pick the branch without asking. `00-project-setup` carries the same section, minus the push step when Stage 5b recorded no repository URL: the project is local only, so it commits locally and never pushes.
-7. Update state: that feature's spec is `generated`.
+4. **Check the size again, on the actual content you are about to write.** The Step 2 check runs on the plan; this one runs on the spec. If the decisions you enumerated span more than one module or surface, or the `## Check When Done` list runs long, stop and split here rather than writing an oversized spec. Letter the parts and generate each as its own spec. A split now is cheaper than a split after the build has started, and it is the same rule.
+5. Read `templates/feature-spec.md` (or `templates/project-setup.md` for feature 00), write `context/feature-specs/NN-kebab-name.md`.
+6. **Every spec ends with a mandatory `## Progress Tracker` section** naming the exact `progress-tracker.md` fields to update when the feature lands. This is what makes the per chat loop work without the engineer repeating instructions.
+7. **Every spec except `00-project-setup` carries a `## Commit and Push` section** with the fixed order: `Check When Done` passes, tests green, lint and typecheck green, then ask which branch (main versus a new branch), then commit and push. Never commit on a red test, never pick the branch without asking. `00-project-setup` carries the same section, minus the push step when Stage 5b recorded no repository URL: the project is local only, so it commits locally and never pushes.
+8. Update state: that feature's spec is `generated`.
 
 Never batch questions across features. One feature's unresolved decisions per round, so you can approve or correct one feature at a time, exactly like the chat loop it feeds.
 

@@ -207,6 +207,8 @@ The worker never retries a failed build blindly, never answers an owed decision,
 
 Then call `kanban_block(reason="...")` with the above. Do not delegate the next feature. A failed feature means the next one may be built on a broken foundation — and the parent chain means the next card will not promote anyway.
 
+**Then tell the engineer, in the reply, not only in the card.** A blocked card is a request for a human decision, and the engineer is not watching the board. State the feature, the kind of block, the question or error verbatim, and the exact command to resume. A block reason written only to the card is a block the engineer finds hours later, if at all — and the question the builder asked goes unanswered while the whole run waits.
+
 When the engineer unblocks, the fix goes back to the **build session**, not a new one. The card already names it, so B0 finds it and B1b resumes it, and the builder picks up the failure with its own implementation context intact. That is the loop: review and test find it, the build session fixes it, review and test look again.
 
 If the failure came from review or test, name those sessions in the block reason. The engineer may want to read the reviewer's reasoning before deciding, and that reasoning is only findable if the session id is in the card.
@@ -223,6 +225,8 @@ If the failure came from review or test, name those sessions in the block reason
 - Never creates a second build session for a feature that already has one. An interrupted build is resumed, not restarted. `feat-04` and `feat-04-r1` running side by side is this rule failing.
 - Never lets the reviewer or the tester edit implementation code. They report; the build session fixes.
 - Never deletes a session the engineer may need. Probe and smoke sessions are the engineer's signal that something ran; deleting them silently is why the engineer stops trusting the session list. Name them in the report instead.
+- Never gives a time estimate for a build. A build's duration depends on the model, the provider, the feature's real size, and how many owed decisions surface, none of which the worker can see. An estimate the engineer arranges their day around and then misses is worse than no estimate. Report **state** instead — what phase the build is in, what it has written, what it is waiting on — which is verifiable and does not expire.
+- Never waits on the engineer for a push credential it has already been given. When a push fails with a permission error and the engineer has already named an approved credential, use it. Sitting blocked for hours on a 403 while the approved credential sits unused is a worker waiting for permission it already has. If no credential has been approved, **then** ask — and say the push is otherwise complete.
 
 ## Session hygiene
 
