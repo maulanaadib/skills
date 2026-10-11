@@ -24,6 +24,19 @@ Every `opencode run` creates a session, and those sessions are how the engineer 
 
 The worker never lets one feature accumulate build sessions. A new build session is created **once**, on the first delegation; every interruption after that resumes it. The session id is the card's memory across dispatcher ticks, which is the only reason a resume is possible at all.
 
+## The worker has no memory between ticks
+
+Every dispatcher tick is a fresh turn. A gateway restart, a reclaimed card, a new spawn — none of them carry the previous turn's chat forward. Anything held only in chat is forgotten by the next tick, and the failure looks like the worker ignoring an instruction it was already given: "apakah kamu lupa semuanya karena restart?" is this rule failing.
+
+So the worker treats its own turn as stateless and writes everything the next tick needs somewhere durable:
+
+- **The build session id** → a card comment and the card metadata, written before the run finishes, not after.
+- **The review and test model choices** → a card comment, asked once and reused.
+- **The block reason and the resume command** → the card, and also the reply to the engineer.
+- **Feature progress** → `context/progress-tracker.md`, which is the file B0 reads first for exactly this reason.
+
+If a rule the engineer gave you in a previous tick is not in this skill, in the card, or in a `context/` file, you do not have it. Say so instead of silently proceeding without it — a worker that forgets a correction and repeats the mistake is worse than one that asks again.
+
 ## The trigger
 
 This skill does not run on a timer and does not need a human to start each feature. The kanban dispatcher is the trigger.
@@ -141,7 +154,7 @@ Rules that make this safe:
 - **One feature per run.** Never two. A failure must stay contained to one feature.
 - **`--dir` pins the working directory.** The worker may be running from elsewhere; the build must happen in the project directory.
 - **Heartbeat while you wait.** `opencode run` is synchronous and can take many minutes. Call `kanban_heartbeat(note="delegated <NN> to opencode run, waiting")` while it runs, at least once an hour. Without a heartbeat the dispatcher may reclaim the card mid-build and you lose the run.
-- **Wait for it.** Do not background it, do not poll, do not time it out and move on.
+- **Wait for it, and be the one that sees it exit.** Do not background it, do not time it out and move on. The wait is allowed to block the turn — that is the correct behavior, not a problem to optimize. A simple blocking wait is fine; the alternative, ending the turn while the run is still in flight, is how a build finishes and nobody notices. The heartbeat is what keeps your claim on the card alive across that wait; without it the dispatcher reclaims the card and the run's exit code lands in a turn that no longer exists.
 - **Never fork a sibling session for the same feature.** If the card names a session, that session is the build. A crash is a reason to resume, not a reason to start over.
 
 ### B2. Read the result

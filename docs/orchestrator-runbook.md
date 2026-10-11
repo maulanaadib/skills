@@ -209,6 +209,7 @@ These are in `SOUL.md` and in the skill. They are the reason unattended is safe 
 - **The orchestrator never writes application code.** It delegates. If it could build, it could build the wrong thing at full speed.
 - **The orchestrator never edits `context/`.** Those are contracts. A wrong spec is a human decision.
 - **The orchestrator never answers an owed decision.** It surfaces the question verbatim and blocks. It never picks the recommended option on your behalf.
+- **The orchestrator has no memory between ticks.** Every spawn is a fresh turn. State lives in the card and in `context/`, never in chat. This is why a correction you gave it once can appear to be forgotten after a restart — it was never written down.
 - **A failed build is never auto-retried.** The card stays blocked until a human unblocks it. A retry without new information is the same failure again.
 - **The worker never gives a time estimate for a build.** It reports state, not duration.
 - **The worker never waits on you for a credential you already approved.** It uses it, and only asks when none has been approved.
