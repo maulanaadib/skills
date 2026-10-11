@@ -434,8 +434,8 @@ It never creates a bundle, never edits the feature list, and never runs `/selcy-
 1. **Read `progress-tracker.md`.** Current Phase, Current Goal, Completed, In Progress. The file is the only source of truth; the orchestrator forgets between turns.
 2. **Delegate one feature.** One feature per card, chained in order so a failure stays contained. The first delegation creates a build session named `feat-<NN>-<slug>` and **records the session id in the card**.
 3. **Wait.** Never background it, never time it out and move on.
-4. **Review**, in a new session `feat-<NN>-<slug>-review`, on a **different model than the one that built it**. The reviewer reads the spec and the code on disk and reports findings only — it never edits code. A model reviewing its own output shares its own blind spots.
-5. **Test**, in a new session `feat-<NN>-<slug>-test`, on a different model. The tester writes the suite from scratch from the spec, not from the builder's reasoning, and runs it.
+4. **Review**, in a new session `feat-<NN>-<slug>-review`, on a **different model than the one that built it**. The reviewer reads the spec and the code on disk and reports findings only — it never edits code. A model reviewing its own output shares its own blind spots. **Which model is your call** — it asks once, records the answer in the card, and reuses it for every feature after that.
+5. **Test**, in a new session `feat-<NN>-<slug>-test`, on the model you named for test. The tester writes the suite from scratch from the spec, not from the builder's reasoning, and runs it.
 6. **Verify.** Green output is a claim, not proof. It checks the spec's `## Check When Done`, the reviewer's findings, the test result, and re-reads the tracker to confirm the builder itself moved the feature to Completed.
 7. **Advance.** If it all passed, loop to step 1 for the next feature.
 8. **Stop.** If it failed, or the builder asked a question the bundle does not answer, it stops and reports. Never retries blindly, never answers an owed decision, never edits the spec to make a failure go away.

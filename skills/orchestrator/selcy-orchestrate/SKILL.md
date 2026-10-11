@@ -70,8 +70,8 @@ kanban_create(
     title="Build <NN>: <feature name>",
     assignee="selcy-orchestrator",
     body="Build the feature in context/feature-specs/<NN-name>.md. "
-         "Read context/AGENTS.md first, then the spec. "
-         "The spec's ## Check When Done is the contract.",
+         "Update context/progress-tracker.md as needed, then implement "
+         "exactly as specified. The spec's ## Check When Done is the contract.",
     parents=[<previous card id>],   # omit on the first card
 )
 ```
@@ -111,7 +111,7 @@ The message always names the feature spec and nothing else. What changes is whet
 #### B1a. First delegation — create the session
 
 ```bash
-opencode run --dir <project-dir> --title "feat-<NN>-<slug>" --auto "Read context/AGENTS.md, then build the feature in context/feature-specs/<NN-name>.md"
+opencode run --dir <project-dir> --title "feat-<NN>-<slug>" --auto "Read context/feature-specs/<NN-name>.md, update context/progress-tracker.md as needed, then implement exactly as specified."
 ```
 
 The `--title` is what makes the session findable in the list later. A session with a generic or auto-generated title is invisible to the engineer reviewing the run, which is the only reason these sessions get kept at all.
@@ -129,7 +129,7 @@ Do this immediately, not after the build. If the worker dies before the run fini
 If the card already names a build session, continue it. Do not create a new one.
 
 ```bash
-opencode run --dir <project-dir> --session ses_<id> --auto "Continue building the feature in context/feature-specs/<NN-name>.md."
+opencode run --dir <project-dir> --session ses_<id> --auto "Continue building the feature in context/feature-specs/<NN-name>.md. Update context/progress-tracker.md as needed."
 ```
 
 `--continue` resumes the most recent session in the project directory; `--session <id>` resumes the specific one this card named. Prefer `--session`, because with more than one feature in flight the most recent session is not necessarily this card's.
@@ -137,6 +137,7 @@ opencode run --dir <project-dir> --session ses_<id> --auto "Continue building th
 Rules that make this safe:
 
 - **The message is a pointer, not a brief.** Do not paraphrase the spec, do not add requirements, do not scope it.
+- **Name the spec and the tracker, nothing else.** The form is: *read `context/feature-specs/<NN-name>.md`, update `context/progress-tracker.md` as needed, then implement exactly as specified.* Do not tell the builder to read `context/AGENTS.md` — the project-root `AGENTS.md` is auto-loaded by the builder, and instructing it to read the copy under `context/` confuses it about which one governs. Do not add negative instructions ("do not read X") either; name what to read, positively.
 - **One feature per run.** Never two. A failure must stay contained to one feature.
 - **`--dir` pins the working directory.** The worker may be running from elsewhere; the build must happen in the project directory.
 - **Heartbeat while you wait.** `opencode run` is synchronous and can take many minutes. Call `kanban_heartbeat(note="delegated <NN> to opencode run, waiting")` while it runs, at least once an hour. Without a heartbeat the dispatcher may reclaim the card mid-build and you lose the run.
@@ -156,7 +157,9 @@ A build that exits zero is a builder saying it is finished. Verify it, then have
 
 #### B3a. Review — new session, different model
 
-Create a session named `feat-<NN>-<slug>-review`, on a **different model than the one that built the feature**. A model reviewing its own output shares its own blind spots; if the builder let a bug through, the same model is likely to let it through again. If no second model is available, run the review anyway on the same model and say so in the report — a same-model review is weaker, not useless.
+Create a session named `feat-<NN>-<slug>-review`, on a **different model than the one that built the feature**. A model reviewing its own output shares its own blind spots; if the builder let a bug through, the same model is likely to let it through again.
+
+**Which model is the engineer's call, so ask.** Before the first review on a project, ask the engineer which model to use for review, and which for test. Record both answers in a card comment, and reuse them for every feature after that — the engineer should not have to answer twice. If the engineer has not answered yet, **do not silently fall back to the builder model and call it a review**. Ask, and block the card until they answer. A same-model review is weaker, and the engineer decides whether to accept that, not the worker.
 
 ```bash
 opencode run --dir <project-dir> --title "feat-<NN>-<slug>-review" --model <review-model> --auto "Read context/feature-specs/<NN-name>.md, then review the implementation against its ## Check When Done and the standards files. Report findings only. Do not edit any file."
@@ -168,7 +171,7 @@ Record the review session id in the card the same way as the build session.
 
 #### B3b. Test — new session, different model
 
-Create a session named `feat-<NN>-<slug>-test`, again on a different model. The tester reads the spec and the code and writes the suite from scratch. It does not read the builder's session, because a test suite written from the builder's reasoning covers the cases the builder already considered.
+Create a session named `feat-<NN>-<slug>-test`, on the model the engineer named for test. The tester reads the spec and the code and writes the suite from scratch. It does not read the builder's session, because a test suite written from the builder's reasoning covers the cases the builder already considered.
 
 ```bash
 opencode run --dir <project-dir> --title "feat-<NN>-<slug>-test" --model <test-model> --auto "Read context/feature-specs/<NN-name>.md and context/testing-standards.md, then write the test suite this feature requires. Run it and report the result."
