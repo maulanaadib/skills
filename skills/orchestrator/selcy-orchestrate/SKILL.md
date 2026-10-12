@@ -52,12 +52,31 @@ This is why the skill is split in two:
 
 All four must be true, or the skill stops and says which one is missing:
 
-1. A `context/` bundle exists in the project directory, written by `/selcy-sdd` or `/selcy-audit`.
-2. `context/progress-tracker.md` names a current goal that is a feature spec in `context/feature-specs/`.
+1. A `context/` bundle exists in the project directory — written by `/selcy-sdd`, reverse-engineered by `/selcy-audit`, or carrying a change spec from `/selcy-sdd change`. Any of the three doors works. The orchestrator reads the tracker, not the bundle's origin, and a change spec is worked exactly like a feature spec.
+2. `context/progress-tracker.md` names a current goal that is a spec file in `context/feature-specs/`.
 3. `opencode` is on PATH and can run in the project directory.
 4. The kanban toolset is enabled on this profile (`hermes -p selcy-orchestrator tools enable kanban`). Without it the `kanban_*` tools are not in the schema and the worker cannot close its own card.
 
-The skill never creates a bundle, never edits the feature list, and never runs `/selcy-sdd` or `/selcy-audit`. If the bundle is missing, that is a human decision about what to build; tell the engineer to run `/selcy-sdd` first on a new project, or `/selcy-audit` on a codebase that already exists.
+The skill never creates a bundle, never edits the feature list, and never runs `/selcy-sdd`, `/selcy-audit`, or `/selcy-sdd change`. If the bundle is missing, that is a human decision about what to build; tell the engineer which door applies: `/selcy-sdd` on a new project, `/selcy-audit` on a codebase that already exists, `/selcy-sdd change` on a bundle that exists and needs a deliberate edit.
+
+## The ten skills, and what this orchestrator does with each
+
+The suite has ten skills and this orchestrator has exactly three relationships to them. Knowing which is which is the whole routing problem, because getting it backwards is the failure mode: delegating a skill that should only be named means the worker makes a decision that belongs to the engineer, and naming a skill that should be delegated means the worker hand-rolls a worse version of it.
+
+| Skill | Relationship | Why
+| --- | --- | --- |
+| `/selcy-sdd` | **Never runs it. Names it.** | Creating the bundle is a human decision about what to build. |
+| `/selcy-audit` | **Never runs it. Names it.** | Same, on a codebase that already exists. |
+| `/selcy-sdd change` | **Never runs it. Names it.** | A deliberate change to a bundle that exists. The change spec it writes is worked like any feature. |
+| `/selcy-implement` | **Delegates to it.** | The build session reading the spec and implementing it IS this skill's job. |
+| `/selcy-check` | **Delegates to it.** | The review stage runs `/selcy-check review`; `verify` is delegated when the desk check leaves an item unproven. |
+| `/selcy-test` | **Does not delegate to it.** | See B3b. It scopes from uncommitted changes, but the builder already committed — and the point of the test stage is an independent suite written from the spec, not from the builder's reasoning. |
+| `/selcy-debug` | **Never runs it. Names it.** | When a failure is a bug rather than an owed decision, the engineer's fix tool is this, in the build session. |
+| `/selcy-grill` | **Never runs it. Names it.** | When the block is an owed decision, this is how the engineer settles it properly instead of answering under pressure. |
+| `/selcy-debt` | **Never runs it. Names it.** | When the builder surfaced a pre-existing bug in a surface this feature did not build. |
+| `/selcy-sync` | **Never runs it. Names it.** | After the engineer edits a standards file, and after a change lands, to catch the specs it made stale. |
+
+**The rule behind the table:** the orchestrator delegates the three skills that do work inside a build (implement, check, test) and only names the seven that decide, record, or maintain contracts. A worker that runs `/selcy-grill` itself is a worker answering an owed decision on the engineer's behalf, which the never-does list forbids; a worker that hand-rolls `/selcy-check review` is a worker that drops the severity ranking and the standards-file-is-contract rule that make the review worth spawning.
 
 ## Phase A: Bootstrap the board
 
@@ -71,6 +90,8 @@ Read `context/progress-tracker.md`. Find:
 - **Current Goal** — the feature to delegate. It must name a spec file.
 - **Completed** — features already done. Never create a card for one of these.
 - **In Progress** — if a feature is listed here, it resumes rather than starting fresh.
+
+A spec written by `/selcy-sdd change` is worked exactly like a feature spec: same card, same delegation, same verification. The tracker does not distinguish them and neither does the worker.
 
 If Current Goal is missing or names no spec file, stop. That is a bundle state a human must fix.
 
@@ -175,8 +196,12 @@ Create a session named `feat-<NN>-<slug>-review`, on a **different model than th
 **Which model is the engineer's call, so ask.** Before the first review on a project, ask the engineer which model to use for review, and which for test. Record both answers in a card comment, and reuse them for every feature after that — the engineer should not have to answer twice. If the engineer has not answered yet, **do not silently fall back to the builder model and call it a review**. Ask, and block the card until they answer. A same-model review is weaker, and the engineer decides whether to accept that, not the worker.
 
 ```bash
-opencode run --dir <project-dir> --title "feat-<NN>-<slug>-review" --model <review-model> --auto "Read context/feature-specs/<NN-name>.md, then review the implementation against its ## Check When Done and the standards files. Report findings only. Do not edit any file."
+opencode run --dir <project-dir> --title "feat-<NN>-<slug>-review" --model <review-model> --auto "Run /selcy-check review <NN>. The feature spec is context/feature-specs/<NN-name>.md."
 ```
+
+This delegates to the real skill rather than a hand-rolled review prompt, and that matters: `/selcy-check review` ranks findings by severity (blocks close, should fix, nit), **drops findings that contradict a standards file the code correctly follows** — the standards file is the contract, not the reviewer's taste — and writes the ranked findings to `context/.reviews/<feature>.md` where the engineer can read them later. A review prompt the worker invented itself carries none of that, and silently promotes the reviewer's taste over the project's contract.
+
+The `--model` you pass is the session's model. `/selcy-check review` may spawn its own reviewer subagent on a model it picks; either way its one rule holds — never the model that wrote the code — so the engineer's choice and the skill's rule are both satisfied. When there is no subagent support it reviews inline on the session model you named, and says so in the report.
 
 The reviewer **never edits code**. It reads the spec, reads the code on disk, and reports. This is separation of duties: the reviewer's job is to notice, the builder's job is to fix. A reviewer that fixes loses the independent perspective that made it worth spawning, and the builder never learns what it missed.
 
@@ -190,6 +215,11 @@ Create a session named `feat-<NN>-<slug>-test`, on the model the engineer named 
 opencode run --dir <project-dir> --title "feat-<NN>-<slug>-test" --model <test-model> --auto "Read context/feature-specs/<NN-name>.md and context/testing-standards.md, then write the test suite this feature requires. Run it and report the result."
 ```
 
+**This is deliberately not `/selcy-test`, and the reason is a real conflict, not an oversight.** `/selcy-test` scopes from uncommitted changes — `git diff` plus untracked files — and by this point the builder has already committed, because the spec's `## Commit and Push` made it, and green tests were its gate. So the working tree is clean and `/selcy-test` would correctly report nothing to test and stop.
+
+The test stage wants something different anyway: a suite written **from the spec alone**, by a session that never saw the builder's reasoning. That is the whole point of a separate session — the builder already wrote its own tests (the spec forced it to, before the commit), and a suite written from the builder's thinking covers the cases the builder already considered. So this session reads the spec and `testing-standards.md` and writes the independent suite.
+
+The one thing borrowed from `/selcy-test` is its discipline, not its command: trace each test to a `## Check When Done` item or a standards requirement, and refuse to write tests that lock in scaffolding the feature never made real. A test with no traceable source is scope creep or a spec gap; say which.
 The tester writes tests and runs them. It does not fix the implementation when they go red — that goes back to the builder, in the build session, via B4.
 
 #### B3c. Read all three results
@@ -203,6 +233,14 @@ Only now do you judge the feature. Read, in order:
 5. `context/progress-tracker.md` again. Did the builder move this feature to Completed and set the next Current Goal? If it did not, the builder itself did not consider the feature done; do not override that judgment.
 
 If every checklist item is addressed, the reviewer found nothing blocking, the suite is green, and the tracker advanced → the feature is done. Call `kanban_complete(summary=..., metadata=...)` with what changed, how it was verified, which sessions hold the evidence, and what risk is still open. The dispatcher promotes the next card on the next tick.
+
+**A checklist item the builder addressed but did not prove is not addressed.** "The builder said it works" is a claim, and this skill's own rule is that green output is a claim, not proof. When the output leaves an item genuinely unproven — a state the spec names that nobody exercised, a surface nobody opened — delegate the proof instead of accepting the claim:
+
+```bash
+opencode run --dir <project-dir> --title "feat-<NN>-<slug>-verify" --model <verify-model> --auto "Run /selcy-check verify <NN>. The feature spec is context/feature-specs/<NN-name>.md."
+```
+
+`/selcy-check verify` runs the real app and reports what it actually observed, per item. Use it when the desk check cannot settle an item; do not run it by default, it costs a real app boot per feature.
 
 If an item was skipped, the reviewer found a blocking issue, a test is red, or the tracker did not advance → the feature is not done. Go to B4.
 
@@ -220,6 +258,17 @@ The worker never retries a failed build blindly, never answers an owed decision,
 
 Then call `kanban_block(reason="...")` with the above. Do not delegate the next feature. A failed feature means the next one may be built on a broken foundation — and the parent chain means the next card will not promote anyway.
 
+**Name the skill that resolves it.** The engineer's unblock is not just "answer the question" — for most block kinds there is a skill that settles it properly, and the engineer may not be holding the whole suite in their head when they read the block at 2am:
+
+| Block kind | The skill that resolves it |
+| --- | --- |
+| **Owed decision** | `/selcy-grill`, then `/selcy-sync` — settle the decision, write it to the standards file, and catch the specs it made stale. Answering the question in chat alone loses the answer by the next chat. |
+| **Failed** | `/selcy-debug`, in the build session — when the error is a bug, not a missing decision. |
+| **Gate mismatch** | `/selcy-sdd specs <feature>` — when the checklist item is genuinely missing, or the spec itself is wrong. |
+| **Review or test failure** | The fix goes to the build session; if the finding is a standards violation, `/selcy-implement`; if the standards file itself is wrong, `/selcy-grill` then `/selcy-sync`. |
+
+Say the skill by name in the block reason, with the one reason it applies. Do not explain the whole suite — the engineer needs the next step, not a manual.
+
 **Then tell the engineer, in the reply, not only in the card.** A blocked card is a request for a human decision, and the engineer is not watching the board. State the feature, the kind of block, the question or error verbatim, and the exact command to resume. A block reason written only to the card is a block the engineer finds hours later, if at all — and the question the builder asked goes unanswered while the whole run waits.
 
 When the engineer unblocks, the fix goes back to the **build session**, not a new one. The card already names it, so B0 finds it and B1b resumes it, and the builder picks up the failure with its own implementation context intact. That is the loop: review and test find it, the build session fixes it, review and test look again.
@@ -234,7 +283,7 @@ If the failure came from review or test, name those sessions in the block reason
 - Never batches features. One per card, one per delegation, always.
 - Never retries a failed delegation automatically. A retry without new information is the same failure again. The card stays blocked until a human unblocks it.
 - Never marks a feature complete itself. It reads the tracker; the builder writes it. `kanban_complete` is called only when the tracker says every feature is done.
-- Never runs `/selcy-sdd`, `/selcy-implement`, `/selcy-check`, `/selcy-test`, or `/selcy-debug` itself. Those are the builder's tools, and the orchestrator delegating to itself is the loop it exists to prevent.
+- Never runs any of the ten skills in its own session. The three it needs — `/selcy-implement`, `/selcy-check`, `/selcy-test` — run inside the delegated `opencode run` sessions, on the models it chose; the other seven it never runs at all, it names them to the engineer. The orchestrator delegating to itself is the loop it exists to prevent, and a worker that runs `/selcy-grill` is a worker answering an owed decision on the engineer's behalf.
 - Never creates a second build session for a feature that already has one. An interrupted build is resumed, not restarted. `feat-04` and `feat-04-r1` running side by side is this rule failing.
 - Never lets the reviewer or the tester edit implementation code. They report; the build session fixes.
 - Never deletes a session the engineer may need. Probe and smoke sessions are the engineer's signal that something ran; deleting them silently is why the engineer stops trusting the session list. Name them in the report instead.

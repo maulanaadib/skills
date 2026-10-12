@@ -38,7 +38,20 @@ Five pieces, each with one job:
 
 The trigger is not a cron job and not a human. It is the dispatcher: a loop inside the gateway that claims any card in `ready` status and spawns the assigned profile. You create the cards once; the board does the rest.
 
-This repo also holds the spec-driven skills (`/selcy-sdd`, `/selcy-implement`, `/selcy-check`, `/selcy-test`, `/selcy-debug`, `/selcy-sync`) under `skills/software-engineer/`. The orchestrator lives at `skills/orchestrator/selcy-orchestrate`.
+This repo also holds the spec-driven skills (`/selcy-sdd`, `/selcy-audit`, `/selcy-implement`, `/selcy-check`, `/selcy-test`, `/selcy-debug`, `/selcy-grill`, `/selcy-debt`, `/selcy-sync`) under `skills/software-engineer/`, plus `/selcy-sdd change` as the modification door. The orchestrator lives at `skills/orchestrator/selcy-orchestrate`.
+
+## The three doors, and which one you came through
+
+The bundle can arrive three ways, and the orchestrator does not care which — it reads `progress-tracker.md`, not the bundle's origin:
+
+| Door | When |
+| --- | --- |
+| `/selcy-sdd` | Empty directory, you answer the interview, it writes the bundle. |
+| `/selcy-audit` | The code already exists, it reads the code and writes the bundle from what the code says. |
+| `/selcy-sdd change` | The bundle exists and you want a deliberate change — content, UI, an endpoint, the database, core internals. It interviews the change, computes the blast radius, and writes one change spec. |
+
+A change spec is worked exactly like a feature spec: one card, one delegation, the same review and test stages. The tracker does not distinguish them and neither does the worker.
+
 
 ## One time setup
 
@@ -181,10 +194,10 @@ It stops for one of three reasons. Each has a different response:
 
 | Why it stopped | What you do |
 | --- | --- |
-| **Owed decision** — the builder asked a question the bundle does not answer | Answer it. Then edit `context/` if the answer is a new rule, and unblock the card. |
-| **Failed** — the build errored | Read the opencode session for the error. Fix the environment or the code, then unblock. Do not blindly re-run. |
-| **Review or test failure** — the reviewer found a blocking issue, or a test is red | Read the `-review` or `-test` session for the finding. The fix goes back to the build session, not a new one. |
-| **Gate mismatch** — the builder claimed done but a checklist item is unaddressed | Read the opencode session. Either the item is genuinely missing, or the spec is wrong. Fix one of them, then unblock. |
+| **Owed decision** — the builder asked a question the bundle does not answer | Settle it with `/selcy-grill`, then run `/selcy-sync` — the decision goes to the standards file, and sync catches the specs it made stale. Answering it in chat alone loses the answer by the next chat. Then unblock. |
+| **Failed** — the build errored | Read the opencode session for the error. If it is a bug rather than a missing decision, `/selcy-debug` in the build session. Fix the environment or the code, then unblock. Do not blindly re-run. |
+| **Review or test failure** — the reviewer found a blocking issue, or a test is red | Read the `-review` or `-test` session for the finding. The fix goes back to the build session, not a new one. Findings are ranked in `context/.reviews/<feature>.md`. |
+| **Gate mismatch** — the builder claimed done but a checklist item is unaddressed | Read the opencode session. Either the item is genuinely missing — `/selcy-sdd specs <feature>` — or the spec is wrong. Fix one of them, then unblock. |
 
 Resuming never restarts anything. The board is the state:
 
@@ -201,6 +214,12 @@ The worker reads `progress-tracker.md` first, so it picks up wherever the loop s
 **The worker does not give time estimates.** A build's duration depends on the model, the provider, the feature's real size, and how many owed decisions surface, none of which the worker can see. An estimate you arrange your day around and then miss is worse than no estimate. It reports **state** instead — what phase the build is in, what it has written, what it is waiting on — which is verifiable and does not expire. The heartbeat is the mechanism for this: it proves the run is alive without predicting when it finishes.
 
 **The worker uses a push credential you have already approved.** When a push fails with a permission error and you have named an approved credential, the worker uses it rather than blocking. A card that sits blocked for hours on a 403, while the approved credential sits unused, is a worker waiting for permission it already has. If no credential has been approved, **then** it asks — and says the push is otherwise complete.
+
+**The review stage runs the real `/selcy-check review`.** Not a review prompt the worker invented. That matters because `/selcy-check review` ranks findings by severity, **drops findings that contradict a standards file the code correctly follows** — the standards file is the contract, not the reviewer's taste — and writes the ranked findings to `context/.reviews/<feature>.md`. A hand-rolled review carries none of that, and silently promotes the reviewer's taste over the project's contract.
+
+**The test stage is deliberately not `/selcy-test`.** This is a real conflict, not an oversight. `/selcy-test` scopes from uncommitted changes, and by the time the test stage runs the builder has already committed — the spec's `## Commit and Push` made it, and green tests were its gate. So the working tree is clean and `/selcy-test` would correctly report nothing to test and stop. The test stage wants something different anyway: a suite written from the spec alone, by a session that never saw the builder's reasoning. The builder already wrote its own tests; a suite written from the builder's thinking covers the cases the builder already considered.
+
+**The worker names the skill that resolves a block.** When it blocks, it does not just say "owed decision" — it says `/selcy-grill` then `/selcy-sync`, because the engineer reading the block at 2am is not holding the whole suite in their head. The full routing table is in the skill: the orchestrator delegates the three skills that do work inside a build (`/selcy-implement`, `/selcy-check`, `/selcy-test`) and only names the seven that decide, record, or maintain contracts.
 
 ## The rules that keep this safe
 
@@ -221,8 +240,9 @@ These are in `SOUL.md` and in the skill. They are the reason unattended is safe 
 ## When not to use this
 
 - **You want to review each feature before the next one starts.** This is unattended. Use `/selcy-implement` per feature in a new chat instead.
-- **The project has no spec bundle.** Run `/selcy-sdd` first. The orchestrator will refuse and tell you to.
-- **You want to change what is being built.** Edit the bundle, run `/selcy-sync`, then resume. The orchestrator never edits the bundle for you.
+- **The project has no spec bundle.** Run `/selcy-sdd` on a new project, or `/selcy-audit` on a codebase that already exists. The orchestrator will refuse and tell you which door applies.
+- **You want to change what is being built.** Run `/selcy-sdd change` — it interviews the change, computes the blast radius, and writes one change spec. Then resume; the orchestrator works it like any feature. The orchestrator never edits the bundle for you.
+- **The change is one open decision, not a change plan.** Use `/selcy-grill` — it settles one decision and writes one line to the standards file. `/selcy-sdd change` is for a change that spans surfaces and needs a blast radius.
 
 ## Uninstall or disable
 

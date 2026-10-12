@@ -455,12 +455,29 @@ The loop is deliberately one feature per chat, and a human opening a new chat pe
 
 **Prerequisites.** All four must be true, or it stops and says which one is missing:
 
-1. A `context/` bundle exists in the project directory, written by `/selcy-sdd`.
+1. A `context/` bundle exists in the project directory — written by `/selcy-sdd`, reverse-engineered by `/selcy-audit`, or carrying a change spec from `/selcy-sdd change`. Any of the three doors works.
 2. `context/progress-tracker.md` names a current goal that is a feature spec in `context/feature-specs/`.
 3. `opencode` is on PATH and can run in the project directory.
 4. The kanban toolset is enabled on the Hermes profile.
 
-It never creates a bundle, never edits the feature list, and never runs `/selcy-sdd`. If the bundle is missing, that is a human decision about what to build.
+It never creates a bundle, never edits the feature list, and never runs `/selcy-sdd`, `/selcy-audit`, or `/selcy-sdd change`. If the bundle is missing, that is a human decision about what to build.
+
+**The ten skills, and what the orchestrator does with each.** Three relationships, and getting them backwards is the failure mode — delegating a skill that should only be named means the worker makes a decision that belongs to the engineer, and naming a skill that should be delegated means the worker hand-rolls a worse version of it:
+
+| Skill | Relationship | Why |
+| --- | --- | --- |
+| `/selcy-sdd` | Never runs it. Names it. | Creating the bundle is a human decision about what to build. |
+| `/selcy-audit` | Never runs it. Names it. | Same, on a codebase that already exists. |
+| `/selcy-sdd change` | Never runs it. Names it. | A deliberate change to a bundle that exists. The change spec it writes is worked like any feature. |
+| `/selcy-implement` | **Delegates to it.** | The build session reading the spec and implementing it IS this skill's job. |
+| `/selcy-check` | **Delegates to it.** | The review stage runs `/selcy-check review`; `verify` is delegated when the desk check leaves an item unproven. |
+| `/selcy-test` | Does not delegate to it. | It scopes from uncommitted changes, but the builder already committed — and the point of the test stage is an independent suite written from the spec, not from the builder's reasoning. |
+| `/selcy-debug` | Never runs it. Names it. | When a failure is a bug rather than an owed decision. |
+| `/selcy-grill` | Never runs it. Names it. | When the block is an owed decision, this is how the engineer settles it properly. |
+| `/selcy-debt` | Never runs it. Names it. | When the builder surfaced a pre-existing bug in a surface this feature did not build. |
+| `/selcy-sync` | Never runs it. Names it. | After the engineer edits a standards file, and after a change lands, to catch the specs it made stale. |
+
+The rule behind the table: the orchestrator delegates the three skills that do work inside a build, and only names the seven that decide, record, or maintain contracts.
 
 **The loop it runs:**
 
@@ -480,6 +497,7 @@ It never creates a bundle, never edits the feature list, and never runs `/selcy-
 | Build | `feat-<NN>-<slug>` | Yes — an interrupted build resumes this session |
 | Review | `feat-<NN>-<slug>-review` | No, always new |
 | Test | `feat-<NN>-<slug>-test` | No, always new |
+| Verify | `feat-<NN>-<slug>-verify` | No, always new — only when the desk check leaves a `Check When Done` item unproven |
 
 Without this, one feature ends up as `feat-04`, `feat-04-r1`, `feat-04-r2` running side by side and you cannot tell which is real. The session id in the card is what makes a resume possible at all, which is why the worker writes it **before** the run finishes, not after — a worker that dies mid-build has to leave a session behind that the next tick can find.
 
