@@ -141,7 +141,7 @@ context/
   error-handling.md          # error contract, logging, observability
   testing-standards.md       # test pyramid, what is tested first, definition of done
   data-model.md              # canonical entities, indexes, migration rules
-  ui-context.md              # theme, colors, typography, component conventions
+  ui-context.md              # theme, colors, typography, component conventions, design reference
   code-standards.md          # implementation rules and conventions
   ai-workflow-rules.md       # development workflow, scoping rules, delivery approach
   feature-specs/
@@ -154,6 +154,12 @@ context/
 
 - **One feature spec per chat.** Never two. This is what keeps a mistake in one chat from touching the others, and what makes each chat cheap to throw away and redo.
 - **Progress lives in `progress-tracker.md`, never in chat memory.** If it is not written to that file, the next chat does not know it happened.
+
+**Three things make it work on a project that is not greenfield in every dimension:**
+
+- **A design you already decided is not re-asked.** If `ui-context.md` exists, the interview skips the UI stage entirely and reads it back. If you bring a design reference (a `design.md`, a screenshot, a repo you want the UI to feel like), the skill extracts the color, typography, and radius scale from it and writes them into `ui-context.md` with a pointer back at the file, then asks only what the reference cannot answer — the component foundation, which is an implementation decision. Bring the reference you already have; the interview fills the gaps around it.
+- **The build approach is a sequence, not a single pick.** The four approaches (Tracer Bullet, Skateboard, Facade, Journey) compose. The common one is **Facade then Tracer Bullet**: build the whole frontend on dummy data so you can click through and validate the product before any backend exists, then fill each feature in vertically — UI, endpoint, database — one feature per chat. That is frontend-first without abandoning vertical slicing, and it costs a second pass over the UI, which the skill says out loud.
+- **A spec that is too thin fails the same way as one that is too big.** Every feature spec carries named data (entities, fields, migration), named services and surfaces, named permissions and boundaries, honest placeholders for anything that depends on a later feature, a `## Scope Limits` section with at least one deferred item, and a `## Check When Done` where every item is verifiable by running something. Below that floor, the builder invents the contract mid build, and whatever it guesses becomes the contract the next feature inherits.
 
 ### `/selcy-audit` — the brownfield door
 

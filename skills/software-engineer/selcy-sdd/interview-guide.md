@@ -130,11 +130,19 @@ What must be tested, where, and from which slice onward.
 
 Only if the product has a UI. Needed because `ui-context.md` is a foundation file every feature spec references.
 
+**Before asking anything in this stage, check what already exists.** A design that the engineer has already settled is not a question, and re-asking it is how this skill overwrites a frozen decision with a fresh recommendation:
+
+- **`ui-context.md` already exists** → **skip this stage entirely.** Read it back into state, say "UI direction is already settled in `ui-context.md`, skipping this stage," and continue to Stage 5. Do not re-ask theme, color, typography, or component foundation. The engineer already answered.
+- **A design reference file exists but no `ui-context.md`** (the engineer names one, or a file like `design.md`, `design-system.md`, or a screenshot/repo reference is present at the project root) → **extract from it instead of asking.** Read the reference, derive the color table, typography, and radius scale from what it actually shows, and write them into `ui-context.md` with a `## Design Reference` section pointing back at the file. Then ask only what the reference cannot answer: **component foundation** (a component library versus hand rolled), because that is an implementation decision, not a design one. Say what you extracted and what you are still asking.
+- **Neither exists** → run the full stage below.
+
+This gate is what makes the skill usable on a project where the design is already decided. Without it, `/selcy-sdd` re-interviews a settled design and may recommend against it.
+
 - **Theme mode.** Dark only, light only, or both. (Recommended: pick one only for the first build; theming both is a feature of its own.)
 - **Color direction.** A named direction plus the accent color or colors. If the engineer has brand colors, take the hex values now.
 - **Typography.** Font family or families (UI and mono), and how they load.
 - **Component foundation.** A component library (shadcn/ui, or other) versus hand rolled. Radius scale and spacing scale.
-- **Design references.** Any app, screenshot, or repo the engineer wants the UI to feel like. Optional but high value; it removes a whole class of later questions.
+- **Design references.** Any app, screenshot, or repo the engineer wants the UI to feel like. Optional but high value; it removes a whole class of later questions. If the engineer names one, record it as a file path (for example `design.md` at the project root) so `ui-context.md` can point at it and later builders can find it. A reference with no path is a preference that dies with the chat that heard it.
 
 If the engineer has no opinion, recommend a complete, coherent default and say it is a default they can replace. A decided default beats an unresolved one.
 
@@ -177,6 +185,8 @@ Recorded in state. Echoed into `architecture-context.md` as the env var table, a
   - **Skateboard**: thinnest usable whole first, then grow. For fast validation of one core loop.
   - **Facade**: clickable UI shell on placeholder data, then wire the back. Prototype grade, say so plainly.
   - **Journey**: one complete user path per phase. When the experience is the product.
+
+  **Two of these compose into a sequence, and that sequence is a valid answer.** The common one is **Facade then Tracer Bullet**: build the whole frontend on dummy data first, so the engineer can click through and validate the product before any backend exists, then fill each feature in vertically (UI → endpoint → database) one feature at a time. Recommend this when the engineer's goal is validation before investment, and say plainly that it costs a second pass over the UI. When the engineer picks a sequence, record both halves in order, and decompose features per the **current** half only — a Facade half produces UI shell features, and the Tracer Bullet half produces the wiring features that replace the dummy data. A wiring feature is a real feature with its own spec and its own chat, not a subtask of the UI feature it completes.
 - **Workflow tier.** Prototype, Alpha, Beta, or GA. How much process each feature warrants, and what closes `done` at that tier. (Recommended: Beta for a real product, Alpha for a throwaway validation.)
 
 Both are recorded on the state header and echoed into `ai-workflow-rules.md`, because that is the file later builders read.

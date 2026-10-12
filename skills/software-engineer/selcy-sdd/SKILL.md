@@ -146,6 +146,17 @@ When a feature trips any of these, split it into parts that each stand alone, an
 
 Say the split out loud in the report, with the reason. The engineer may disagree and want it whole; that is their call, and a split proposed at the feature list stage costs one sentence to undo, while a feature discovered to be too large mid build costs a restart.
 
+**A spec that is too thin is the same failure, in the other direction.** A feature list of headings is not a plan, it is a prompt for the builder to decide what the spec should have said. Every decision the spec leaves open is a decision the builder makes alone, mid build, and whatever it guesses becomes the contract the next feature inherits. The minimum a feature spec carries, all of it, every feature:
+
+- **Named data.** The entities, fields, and the migration name, or an explicit statement that this feature adds no schema. "CRUD customer" without the fields forces the builder to invent them, and invented field names leak into every downstream feature.
+- **Named services and surfaces.** The module or file the work lives in, and the routes or pages it exposes. "Add a list page" without the path is a guess the builder makes once and every later feature depends on.
+- **Named permissions and boundaries.** Who can do what, and how the feature is isolated from other tenants, users, or modules. Absent this, the builder ships an open endpoint and calls it done.
+- **Honest placeholders.** When a part of the feature depends on a later feature, say so and show a placeholder that does not pretend to be the real thing. A zero that looks like a computed total is a lie the next feature has to unwind.
+- **A `## Scope Limits` section with at least one deferred item and a one line why.** A spec that cannot name anything it is not doing has not been scoped; it is a wish.
+- **A `## Check When Done` where every item is verifiable by running something**, not by reading the code. "Build passes" is verifiable. "The code is clean" is not. If an item cannot be phrased as an action with a pass or fail result, it is not a check.
+
+This is the floor, not a target. A spec at the floor is buildable in one chat without the builder inventing a contract; a spec below it is an interview that happens during the build, which is exactly the failure the one-feature-per-chat rule exists to prevent.
+
 ### Step 3: Generate the context bundle
 
 Read every file in `templates/` except `templates/feature-spec.md` and `templates/project-setup.md`, then write them all in one pass. Every ALL_CAPS placeholder in a template is an input you already gathered in the interview; apply each as you read.
