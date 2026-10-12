@@ -20,7 +20,7 @@ It exists because a generic builder skill pointed at a different file convention
 4. It builds, following the standards files as contracts.
 5. It runs the spec's `## Check When Done`, then lint, typecheck, and tests.
 6. It updates `context/progress-tracker.md` per the spec's `## Progress Tracker` section.
-7. It commits per the spec's `## Commit and Push` section, asking which branch.
+7. It commits per the spec's `## Commit and Push` section, on the branch the bundle named at planning time.
 8. You close the chat. Next feature, new chat, same pattern.
 
 Two rules keep the loop safe across chats:

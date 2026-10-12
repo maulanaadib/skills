@@ -59,7 +59,7 @@ The order is fixed:
 1. Every item in the feature spec's `Check When Done` passes.
 2. Tests pass.
 3. Lint and typecheck pass.
-4. Ask which branch to commit to. Never commit silently, never pick the branch without asking.
+4. Commit to the branch the bundle names. Never commit silently. If the bundle named no branch strategy, ask once and record the answer.
 5. Commit with a message that names the feature.
 6. Push. Never force push.
 

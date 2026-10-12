@@ -74,10 +74,10 @@ The order is fixed:
 1. `Verify` passes: a dev server or build runs, and the placeholder page renders.
 2. The first deploy, when Stage 5c put it here, succeeds and the URL responds.
 3. Lint and typecheck pass (`<LINT_COMMAND>`, `<TYPECHECK_COMMAND>`).
-4. Only then, ask the engineer which branch to commit to, as a decision panel:
-   - **`main`** (recommended for a solo build where `main` is the working branch)
-   - **a new branch** (for example `develop` or `feature/<name>`, when the engineer wants review or keeps `main` deployable)
-   Never commit silently, and never pick the branch without asking.
+4. Commit to the branch the bundle names. This is written, not asked:
+   - If the bundle's branch strategy is **trunk-based on `main`** — commit to `main`. Do not ask. The engineer already answered this at planning time, and asking again in an unattended build blocks every feature on a question that was settled.
+   - If the bundle's branch strategy is **feature branches** — create `<BRANCH_NAME>` and commit there. Do not ask which one; the bundle named it.
+   - Only ask if the bundle names no branch strategy at all. Then ask once, as a decision panel: **`main`** (recommended for a solo build where `main` is the working branch) or **a new branch** (for example `develop` or `feature/<name>`, when the engineer wants review or keeps `main` deployable). Never commit silently, and never pick the branch without asking.
 5. Commit the scaffold, the boilerplate cleanup, and the first deploy as one commit, not many: `<COMMIT_MESSAGE>`.
 6. Push to the chosen branch. Never force push.
 

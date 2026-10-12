@@ -67,10 +67,10 @@ The order is fixed:
 1. Every item in `Check When Done` passes, including the regression guard.
 2. Tests pass (`<TEST_COMMAND>`).
 3. Lint and typecheck pass (`<LINT_COMMAND>`, `<TYPECHECK_COMMAND>`).
-4. Only then, ask the engineer which branch to commit to, as a decision panel:
-   - **`main`** (recommended for a solo build where `main` is the working branch)
-   - **a new branch** (for example `develop` or `change/<name>`, when the engineer wants review or keeps `main` deployable)
-   Never commit silently, and never pick the branch without asking.
+4. Commit to the branch the bundle names. This is written, not asked:
+   - If the bundle's branch strategy is **trunk-based on `main`** — commit to `main`. Do not ask. The engineer already answered this at planning time, and asking again in an unattended build blocks every change on a question that was settled.
+   - If the bundle's branch strategy is **feature branches** — create `<BRANCH_NAME>` and commit there. Do not ask which one; the bundle named it.
+   - Only ask if the bundle names no branch strategy at all. Then ask once, as a decision panel: **`main`** (recommended for a solo build where `main` is the working branch) or **a new branch** (for example `develop` or `change/<name>`, when the engineer wants review or keeps `main` deployable). Never commit silently, and never pick the branch without asking.
 5. Commit with a message that names the change: `<COMMIT_MESSAGE>`.
 6. Push to the chosen branch. Never force push.
 
