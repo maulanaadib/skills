@@ -68,7 +68,7 @@ The suite has ten skills and this orchestrator has exactly three relationships t
 | `/selcy-sdd` | **Never runs it. Names it.** | Creating the bundle is a human decision about what to build. |
 | `/selcy-audit` | **Never runs it. Names it.** | Same, on a codebase that already exists. |
 | `/selcy-sdd change` | **Never runs it. Names it.** | A deliberate change to a bundle that exists. The change spec it writes is worked like any feature. |
-| `/selcy-implement` | **Delegates to it.** | The build session reading the spec and implementing it IS this skill's job. |
+| `/selcy-implement` | **Delegates to it.** The build session runs `/selcy-implement <NN>`, which resolves the feature, runs the input coverage gate, builds, runs Check When Done, updates the tracker, and commits. |
 | `/selcy-check` | **Delegates to it.** | The review stage runs `/selcy-check review`; `verify` is delegated when the desk check leaves an item unproven. |
 | `/selcy-test` | **Does not delegate to it.** | See B3b. It scopes from uncommitted changes, but the builder already committed — and the point of the test stage is an independent suite written from the spec, not from the builder's reasoning. |
 | `/selcy-debug` | **Never runs it. Names it.** | When a failure is a bug rather than an owed decision, the engineer's fix tool is this, in the build session. |
@@ -140,13 +140,17 @@ This is the difference between one session per feature and three. If you skip th
 
 ### B1. Delegate one feature
 
-The message always names the feature spec and nothing else. What changes is whether the session is new or resumed.
+The command always names `/selcy-implement` and the feature, nothing else. What changes is whether the session is new or resumed.
 
 #### B1a. First delegation — create the session
 
 ```bash
-opencode run --dir <project-dir> --title "feat-<NN>-<slug>" --auto "Read context/feature-specs/<NN-name>.md, update context/progress-tracker.md as needed, then implement exactly as specified."
+opencode run --dir <project-dir> --title "feat-<NN>-<slug>" --auto "/selcy-implement <NN>"
 ```
+
+This delegates to the real builder skill, and that is the whole point: `/selcy-implement` runs the **input coverage gate** the hand-rolled prompt it replaces had no equivalent for. Before writing any code it enumerates every value the build must produce and checks each against the bundle for a named source; any required value with no named source is an owed decision and it stops and asks rather than inventing. A build prompt the worker invented itself has no gate at all, which means a builder running unattended invents a money rule or a permission model mid feature and nobody finds out until review. The gate is the mechanism that makes unattended builds safe, and delegating is the only way the orchestrator gets it.
+
+`/selcy-implement` also resolves the feature itself from `progress-tracker.md` or the number, reads the root `AGENTS.md` read order, runs the spec's `## Check When Done`, updates the tracker, and commits in the fixed order. The orchestrator does none of that and should not — it would only do it worse.
 
 The `--title` is what makes the session findable in the list later. A session with a generic or auto-generated title is invisible to the engineer reviewing the run, which is the only reason these sessions get kept at all.
 
@@ -163,15 +167,16 @@ Do this immediately, not after the build. If the worker dies before the run fini
 If the card already names a build session, continue it. Do not create a new one.
 
 ```bash
-opencode run --dir <project-dir> --session ses_<id> --auto "Continue building the feature in context/feature-specs/<NN-name>.md. Update context/progress-tracker.md as needed."
+opencode run --dir <project-dir> --session ses_<id> --auto "/selcy-implement <NN>"
 ```
 
 `--continue` resumes the most recent session in the project directory; `--session <id>` resumes the specific one this card named. Prefer `--session`, because with more than one feature in flight the most recent session is not necessarily this card's.
 
+The same command works on resume as on the first run, and that is deliberate. `/selcy-implement` is stateless by design: it reads `progress-tracker.md` first, finds the feature In Progress, and continues from the code on disk. In a resumed session it also carries the build's own chat context, so it does not redo finished work. The tracker is the source of truth; the session is the memory.
+
 Rules that make this safe:
 
-- **The message is a pointer, not a brief.** Do not paraphrase the spec, do not add requirements, do not scope it.
-- **Name the spec and the tracker, nothing else.** The form is: *read `context/feature-specs/<NN-name>.md`, update `context/progress-tracker.md` as needed, then implement exactly as specified.* The builder's read order comes from the root `AGENTS.md`, which `opencode` auto-loads — do not name it in the prompt, and do not name the `context/` copy, which is the pre-root-convention location and confuses the builder about which one governs. Do not add negative instructions ("do not read X") either; name what to read, positively.
+- **Delegate, do not paraphrase.** The command names the skill and the feature, nothing else. Do not restate the spec, do not add requirements, do not scope it. `/selcy-implement` reads the spec; your summary can only lose information.
 - **One feature per run.** Never two. A failure must stay contained to one feature.
 - **`--dir` pins the working directory.** The worker may be running from elsewhere; the build must happen in the project directory.
 - **Heartbeat while you wait.** `opencode run` is synchronous and can take many minutes. Call `kanban_heartbeat(note="delegated <NN> to opencode run, waiting")` while it runs, at least once an hour. Without a heartbeat the dispatcher may reclaim the card mid-build and you lose the run.

@@ -158,7 +158,7 @@ What `/audit` would ask, compressed. These become `code-standards.md`:
 ## Stage 5b: Repository (1 round)
 
 - **GitHub repository URL.** The engineer supplies it (for example `https://github.com/maulanaadib/ghost-ai.git`). Never invent an owner or repo name. If the repo does not exist yet, tell the engineer to create an empty one on GitHub first, without a README or a license, then continue.
-- **Branch strategy.** Commit straight to `main`, or work on a branch (`develop`, or `feature/<name>`) and keep `main` deployable. (Recommended: `main` for a solo build, a branch when the engineer wants review.) This sets the default the `## Commit and Push` section of every feature spec asks about; the engineer can still pick differently per feature.
+- **Branch strategy.** Commit straight to `main`, or work on a branch (`develop`, or `feature/<name>`) and keep `main` deployable. (Recommended: `main` for a solo build, a branch when the engineer wants review.) This is written into the `## Commit and Push` section of every feature spec as a statement, not a question — the spec says commit to `main`, or names the branch. Asking it per feature blocks an unattended build on a question this stage already answered. To change it for one feature, edit that feature's spec.
 - **Commit cadence.** One commit per feature spec (recommended), or per milestone inside it.
 
 Recorded in state and echoed into `ai-workflow-rules.md`, because that is the file later builders read.

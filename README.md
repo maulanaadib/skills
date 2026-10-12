@@ -240,9 +240,11 @@ It turns one feature spec into working code. Nothing else in the bundle is in sc
 4. Builds, treating the standards files as contracts. A feature may add to them, never relax them. If a spec contradicts a standards file, the standards file wins.
 5. Runs the spec's `## Check When Done`, then lint, typecheck, and tests.
 6. Updates `progress-tracker.md` per the spec's `## Progress Tracker` section.
-7. Commits per the spec's `## Commit and Push` section, asking which branch first.
+7. Commits per the spec's `## Commit and Push` section. The branch is written, not asked: trunk-based on `main` → commit to `main`; feature branches → the named branch. The panel only appears when the bundle names no branch strategy at all.
 
 **The gate is the point.** A build model rationalizes a real decision as "just wiring" and waves it through. The gate is mechanical, not intuitive: enumerate the values, check each against the bundle. That is what stops a builder from inventing a money rule or a permission model mid feature.
+
+**The branch is settled at planning time, not build time.** Stage 5b asked it once. If the spec asked it again per feature, an unattended build would block on every feature waiting for an answer the engineer already gave. To commit one feature somewhere else, edit that feature's spec.
 
 ### `/selcy-check` — the gate before done
 
@@ -469,7 +471,7 @@ It never creates a bundle, never edits the feature list, and never runs `/selcy-
 | `/selcy-sdd` | Never runs it. Names it. | Creating the bundle is a human decision about what to build. |
 | `/selcy-audit` | Never runs it. Names it. | Same, on a codebase that already exists. |
 | `/selcy-sdd change` | Never runs it. Names it. | A deliberate change to a bundle that exists. The change spec it writes is worked like any feature. |
-| `/selcy-implement` | **Delegates to it.** | The build session reading the spec and implementing it IS this skill's job. |
+| `/selcy-implement` | **Delegates to it.** The build session runs `/selcy-implement <NN>`, which resolves the feature, runs the input coverage gate, builds, runs Check When Done, updates the tracker, and commits. |
 | `/selcy-check` | **Delegates to it.** | The review stage runs `/selcy-check review`; `verify` is delegated when the desk check leaves an item unproven. |
 | `/selcy-test` | Does not delegate to it. | It scopes from uncommitted changes, but the builder already committed — and the point of the test stage is an independent suite written from the spec, not from the builder's reasoning. |
 | `/selcy-debug` | Never runs it. Names it. | When a failure is a bug rather than an owed decision. |
@@ -482,7 +484,7 @@ The rule behind the table: the orchestrator delegates the three skills that do w
 **The loop it runs:**
 
 1. **Read `progress-tracker.md`.** Current Phase, Current Goal, Completed, In Progress. The file is the only source of truth; the orchestrator forgets between turns.
-2. **Delegate one feature.** One feature per card, chained in order so a failure stays contained. The first delegation creates a build session named `feat-<NN>-<slug>` and **records the session id in the card**.
+2. **Delegate one feature.** One feature per card, chained in order so a failure stays contained. The delegation runs `/selcy-implement <NN>` — the real builder skill, not a prompt the worker wrote, because the builder's input coverage gate is what makes an unattended build safe. The first delegation creates a build session named `feat-<NN>-<slug>` and **records the session id in the card**.
 3. **Wait.** Never background it, never time it out and move on. The wait is allowed to block the turn — a build that finishes with nobody watching its exit code is how completed work goes unnoticed.
 4. **Review**, in a new session `feat-<NN>-<slug>-review`, on a **different model than the one that built it**. The reviewer reads the spec and the code on disk and reports findings only — it never edits code. A model reviewing its own output shares its own blind spots. **Which model is your call** — it asks once, records the answer in the card, and reuses it for every feature after that.
 5. **Test**, in a new session `feat-<NN>-<slug>-test`, on the model you named for test. The tester writes the suite from scratch from the spec, not from the builder's reasoning, and runs it.

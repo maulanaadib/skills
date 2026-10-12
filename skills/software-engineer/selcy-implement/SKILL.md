@@ -134,7 +134,7 @@ Follow the spec's `## Commit and Push` section. The order is fixed:
 1. `Check When Done` passes.
 2. Tests pass.
 3. Lint and typecheck pass.
-4. Ask which branch, as a decision panel: `main` (recommended for a solo trunk based build) or a new branch such as `feature/<name>`. Never pick without asking, never commit silently.
+4. Commit to the branch the spec names. The spec writes this, it does not ask: trunk-based on `main` → commit to `main`; feature branches → commit to the named branch. Only when the spec names no branch at all do you ask, once, as a decision panel: `main` (recommended for a solo trunk based build) or a new branch such as `feature/<name>`. Never commit silently, and never pick the branch without asking when the spec left it open.
 5. Commit with a message that names the feature.
 6. Push. Never force push.
 
@@ -152,7 +152,7 @@ Keep it short. It is a handoff, not a summary of the project.
 - Never edits another feature's spec, and never rewrites a standards file to make a build fit.
 - Never invents a value the bundle does not name.
 - Never commits on a red test or a failed check.
-- Never picks the commit branch without asking.
+- Never picks the commit branch without asking, when the spec left the branch open. When the spec names it, commit to it — the engineer settled that at planning time.
 - Never renumbers or rewrites the feature list; that is `/selcy-sdd`'s.
 
 ## Portability
