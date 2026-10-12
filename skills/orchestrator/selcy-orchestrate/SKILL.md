@@ -76,7 +76,7 @@ The suite has ten skills and this orchestrator has exactly three relationships t
 | `/selcy-debt` | **Never runs it. Names it.** | When the builder surfaced a pre-existing bug in a surface this feature did not build. |
 | `/selcy-sync` | **Never runs it. Names it.** | After the engineer edits a standards file, and after a change lands, to catch the specs it made stale. |
 
-**The rule behind the table:** the orchestrator delegates the three skills that do work inside a build (implement, check, test) and only names the seven that decide, record, or maintain contracts. A worker that runs `/selcy-grill` itself is a worker answering an owed decision on the engineer's behalf, which the never-does list forbids; a worker that hand-rolls `/selcy-check review` is a worker that drops the severity ranking and the standards-file-is-contract rule that make the review worth spawning.
+**The rule behind the table:** the orchestrator delegates the two skills that do work inside a build (implement, check) and only names the seven that decide, record, or maintain contracts. `/selcy-test` is the one exception, and it is a deliberate one — see B3b. A worker that runs `/selcy-grill` itself is a worker answering an owed decision on the engineer's behalf, which the never-does list forbids; a worker that hand-rolls `/selcy-check review` is a worker that drops the severity ranking and the standards-file-is-contract rule that make the review worth spawning.
 
 ## Phase A: Bootstrap the board
 
@@ -288,7 +288,7 @@ If the failure came from review or test, name those sessions in the block reason
 - Never batches features. One per card, one per delegation, always.
 - Never retries a failed delegation automatically. A retry without new information is the same failure again. The card stays blocked until a human unblocks it.
 - Never marks a feature complete itself. It reads the tracker; the builder writes it. `kanban_complete` is called only when the tracker says every feature is done.
-- Never runs any of the ten skills in its own session. The three it needs — `/selcy-implement`, `/selcy-check`, `/selcy-test` — run inside the delegated `opencode run` sessions, on the models it chose; the other seven it never runs at all, it names them to the engineer. The orchestrator delegating to itself is the loop it exists to prevent, and a worker that runs `/selcy-grill` is a worker answering an owed decision on the engineer's behalf.
+- Never runs any of the ten skills in its own session. The two it delegates to — `/selcy-implement` and `/selcy-check` — run inside the delegated `opencode run` sessions, on the models it chose; `/selcy-test` is the documented exception (B3b), and the other seven it never runs at all, it names them to the engineer. The orchestrator delegating to itself is the loop it exists to prevent, and a worker that runs `/selcy-grill` is a worker answering an owed decision on the engineer's behalf.
 - Never creates a second build session for a feature that already has one. An interrupted build is resumed, not restarted. `feat-04` and `feat-04-r1` running side by side is this rule failing.
 - Never lets the reviewer or the tester edit implementation code. They report; the build session fixes.
 - Never deletes a session the engineer may need. Probe and smoke sessions are the engineer's signal that something ran; deleting them silently is why the engineer stops trusting the session list. Name them in the report instead.

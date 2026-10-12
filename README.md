@@ -479,7 +479,7 @@ It never creates a bundle, never edits the feature list, and never runs `/selcy-
 | `/selcy-debt` | Never runs it. Names it. | When the builder surfaced a pre-existing bug in a surface this feature did not build. |
 | `/selcy-sync` | Never runs it. Names it. | After the engineer edits a standards file, and after a change lands, to catch the specs it made stale. |
 
-The rule behind the table: the orchestrator delegates the three skills that do work inside a build, and only names the seven that decide, record, or maintain contracts.
+The rule behind the table: the orchestrator delegates the two skills that do work inside a build (implement, check) and only names the seven that decide, record, or maintain contracts. `/selcy-test` is the one exception, and it is a deliberate one — it scopes from uncommitted changes, but the builder already committed.
 
 **The loop it runs:**
 
