@@ -4,7 +4,7 @@ A collection of [Agent Skills](https://agentskills.io/) for spec-driven developm
 
 One repo, two categories. `skills/software-engineer/` holds the spec-driven loop: interview once, then build one feature per chat. `skills/orchestrator/` holds the automation that drives that loop unattended. They are independent — use only the ones a change needs.
 
-The loop has two doors. `/selcy-sdd` is the greenfield one: empty directory, you answer the questions, it writes the bundle. `/selcy-audit` is the brownfield one: the code already exists, it reads the code and writes the bundle from what the code actually says. Same bundle, same downstream skills. Three further skills run out of band on a living project: `/selcy-grill` settles one open decision, `/selcy-debt` records a finding that outlives the chat that found it, and `/selcy-debug` fixes what is broken.
+The loop has three doors. `/selcy-sdd` is the greenfield one: empty directory, you answer the questions, it writes the bundle. `/selcy-audit` is the brownfield one: the code already exists, it reads the code and writes the bundle from what the code actually says. `/selcy-sdd change` is the modification one: the bundle already exists and you want to change the project deliberately, including core internals. Same bundle, same downstream skills. Three further skills run out of band on a living project: `/selcy-grill` settles one open decision, `/selcy-debt` records a finding that outlives the chat that found it, and `/selcy-debug` fixes what is broken.
 
 ## The loop
 
@@ -12,6 +12,7 @@ The loop has two doors. `/selcy-sdd` is the greenfield one: empty directory, you
 flowchart LR
     A["/selcy-sdd<br/>once at start"] --> B["/selcy-implement<br/>one feature"]
     H["/selcy-audit<br/>once on existing code"] --> B
+    K["/selcy-sdd change<br/>one deliberate change"] --> B
     B --> C["/selcy-check<br/>before close"]
     B --> D["/selcy-test<br/>after build"]
     C --> E["/selcy-sync<br/>after edit or land"]
@@ -25,7 +26,7 @@ flowchart LR
     G["/selcy-orchestrate<br/>drives the whole loop"] ==> B
 ```
 
-Read it as a contract: `/selcy-sdd` or `/selcy-audit` runs **once** and writes the spec bundle. Everything after that runs **per feature**, in its own new chat. `/selcy-debug`, `/selcy-debt`, and `/selcy-grill` run anytime, out of band. `/selcy-orchestrate` replaces the human in the per-feature loop, once, after you approve the plan.
+Read it as a contract: `/selcy-sdd` or `/selcy-audit` runs **once** and writes the spec bundle. `/selcy-sdd change` runs **once per deliberate change** and writes one change spec. Everything after that runs **per feature**, in its own new chat. `/selcy-debug`, `/selcy-debt`, and `/selcy-grill` run anytime, out of band. `/selcy-orchestrate` replaces the human in the per-feature loop, once, after you approve the plan.
 
 ## The skills
 
@@ -33,7 +34,7 @@ One skill per phase. Run only the ones a change needs.
 
 | Skill | Category | What it does |
 | --- | --- | --- |
-| `selcy-sdd` | software-engineer | Run `/selcy-sdd` once at project start. Interviews you in structured rounds (product, stack, architecture shape, security, error handling, testing, deployment), then batch generates the whole spec-driven development context bundle plus numbered feature specs. Safe to resume in a new chat. |
+| `selcy-sdd` | software-engineer | Run `/selcy-sdd` once at project start. Interviews you in structured rounds (product, stack, architecture shape, security, error handling, testing, deployment), then batch generates the whole spec-driven development context bundle plus numbered feature specs. Safe to resume in a new chat. `/selcy-sdd change` is the modification door: interviews a deliberate change, computes its blast radius, and writes one change spec. |
 | `selcy-audit` | software-engineer | Run `/selcy-audit` once on a codebase that already exists and has no context bundle. Reads the real code and reverse-engineers the same bundle from it, so the rest of the loop works on a project you did not start from scratch. Observes, never invents. |
 | `selcy-implement` | software-engineer | Run `/selcy-implement` to build one feature spec into working code. Reads the context bundle, gates on input coverage so nothing load bearing is invented mid build, builds, runs the spec's Check When Done, updates progress-tracker.md, and commits. One feature per chat. |
 | `selcy-check` | software-engineer | Run `/selcy-check` before closing a feature. `verify` runs the real app and proves the feature behaves per its spec; `review` reads the diff on a fresh model and ranks findings. Read only, never edits code. |
@@ -125,6 +126,7 @@ Two rules about the interview:
 /selcy-sdd specs        # regenerate every feature spec from current state
 /selcy-sdd specs 04-debt-entry   # regenerate or add one feature spec only
 /selcy-sdd context      # regenerate only the context files plus the root AGENTS.md
+/selcy-sdd change       # the modification door: interview a change, blast radius, one change spec
 ```
 
 **What it writes:**
@@ -158,7 +160,7 @@ context/
 **Three things make it work on a project that is not greenfield in every dimension:**
 
 - **A design you already decided is not re-asked.** If `ui-context.md` exists, the interview skips the UI stage entirely and reads it back. If you bring a design reference (a `design.md`, a screenshot, a repo you want the UI to feel like), the skill extracts the color, typography, and radius scale from it and writes them into `ui-context.md` with a pointer back at the file, then asks only what the reference cannot answer — the component foundation, which is an implementation decision. Bring the reference you already have; the interview fills the gaps around it.
-- **The build approach is a sequence, not a single pick.** The four approaches (Tracer Bullet, Skateboard, Facade, Journey) compose. The common one is **Facade then Tracer Bullet**: build the whole frontend on dummy data so you can click through and validate the product before any backend exists, then fill each feature in vertically — UI, endpoint, database — one feature per chat. That is frontend-first without abandoning vertical slicing, and it costs a second pass over the UI, which the skill says out loud.
+- **The build approach is a sequence, not a single pick.** The four approaches (Tracer Bullet, Skateboard, Facade, Journey) compose. **The default is Tracer Bullet alone** — vertical slices, each feature end to end, which is what the invoice-me project did. A sequence is a different goal, not a better default. **Facade then Tracer Bullet** is the one to reach for when the engineer wants to validate the product before investing in a backend: build the whole frontend on dummy data so you can click through, then fill each feature in vertically. Say the cost plainly — the UI is not built twice, but the data layer is: a mock layer gets written and thrown away, and the real data invalidates assumptions the mock hid (shape, nullability, pagination, latency, error states), so the same UI files get touched again.
 - **A spec that is too thin fails the same way as one that is too big.** Every feature spec carries named data (entities, fields, migration), named services and surfaces, named permissions and boundaries, honest placeholders for anything that depends on a later feature, a `## Scope Limits` section with at least one deferred item, and a `## Check When Done` where every item is verifiable by running something. Below that floor, the builder invents the contract mid build, and whatever it guesses becomes the contract the next feature inherits.
 
 ### `/selcy-audit` — the brownfield door
@@ -189,6 +191,31 @@ A bundle with honest gaps is a map with blank spots. A bundle with invented fact
 **`verify` mode is read only.** It compares an existing bundle against the code and reports three kinds of disagreement: **stale** (the bundle names something the code no longer has), **missing** (the code has something the bundle never recorded), and **wrong** (both name it, they disagree). It never edits; `/selcy-sync` acts on the report.
 
 It never invents a fact to fill a gap, never overwrites a bundle or a hand-written file without asking, and never fixes the findings it surfaces.
+
+### `/selcy-sdd change` — the modification door
+
+**Run once per deliberate change, on a project that already has a bundle.** Yours after the first build, or a repo you cloned and want to change freely — content, UI, endpoints, database, backend, core internals.
+
+`/selcy-audit` reads the code and writes the bundle from it. `/selcy-grill` settles one decision and writes one line to a standards file. Neither plans a change that spans surfaces, and neither looks ahead to what the change will break. That is what this mode is for.
+
+**The freedom is in choosing the target, not in how it executes.** You may name anything in the repo, including core internals. What keeps that safe is not a smaller scope — it is knowing what else the change will hit before you touch it.
+
+```bash
+/selcy-sdd change
+```
+
+**What it does, in order:**
+
+1. **Interviews the change**, using the `/selcy-grill` discipline: design tree, rounds, the whole frontier per round, every question a panel with one `(recommended)`. The consequences arrive as branches of the tree — a change that touches auth also touches the session store, the middleware, and every route that reads the session, and each of those is a question: *keep it, change it, or break it?*
+2. **Computes the blast radius.** For each surface the change touches, it checks it against every bundle file and every feature spec that names it. **Every item carries three things, and an item missing any of them is not finished:**
+   - **Konsekuensi** — what the change does to that surface, with the file and section.
+   - **Solusi** — the concrete step that keeps the repo working: a command (`/selcy-sdd specs 03-customers-projects`, `/selcy-sync`) or a named edit. Not a principle — a step you can run.
+   - **Pencegahan** — what to do **before** the change. When the blast radius touches a surface with no test coverage, it says so and recommends `/selcy-test` for that surface **before** the change, not after.
+3. **Writes one change spec**, `context/feature-specs/NN-change-<name>.md`, with everything a feature spec carries plus two sections a change owns: `## What This Changes` (status quo → new state, per surface) and `## Blast Radius`. **Its `## Check When Done` must include at least one item that proves existing behavior still works** — that is what lets `/selcy-check verify` catch a regression without any change to that skill.
+
+**One change per spec, one spec per chat.** The same rule as features. A change that touches three surfaces is three change specs, each in its own chat, so a mistake in one never reaches the others. You may change anything you like, as many times as you like — just not all at once.
+
+It works on a bundle from `/selcy-audit` the same as one from `/selcy-sdd`; it reads the bundle, not the resume state. It never runs without a bundle, never writes a change spec whose blast radius has an item with no solution, and never edits a standards file itself — that is `/selcy-grill`, followed by `/selcy-sync`.
 
 ### `/selcy-implement` — the builder
 
@@ -543,13 +570,25 @@ About to touch something whose design is still open, and the bundle does not set
 /selcy-grill             # settles it, writes it to the standards file
 ```
 
+You want to change the project deliberately — content, UI, an endpoint, the database, core internals — and you want to know what else it will break before you touch it:
+
+```bash
+/selcy-sdd change        # interviews the change, computes the blast radius, writes one change spec
+
+# It reports: which specs and standards files this change makes stale,
+# which surfaces have no test coverage (get /selcy-test on those FIRST),
+# and the exact next step.
+
+/selcy-implement 08      # a new chat, builds the change spec like any feature
+```
+
 ## Why this exists
 
 The `/scope` and `/architect` style of skill is deliberately one decision at a time. That is correct for a living project, but expensive at project start, when you want the whole context bundle written once and then forgotten about. `/selcy-sdd` front loads the interview, then batch writes.
 
 It also closes the gaps where a builder most often hallucinates: security rules, architecture shape, the error contract, the testing contract, the data model, money and timezone handling, and the environment variable list. Each is decided once, written to a standards file, and inherited by every feature spec.
 
-The ten skills exist because each is a distinct job with a distinct contract, and mixing them is what causes the failures they prevent: a builder that reviews its own code shares its own blind spots (`selcy-check`), a test suite that proves the tests but not the spec (`selcy-check verify`), a fix that silences a symptom without explaining it (`selcy-debug`), a standards edit that silently invalidates specs nobody regenerates (`selcy-sync`), a decision settled in chat and lost by the next one (`selcy-grill`), a finding that outlives the chat that found it and gets re-tripped (`selcy-debt`), a project that already exists and cannot get through the greenfield door (`selcy-audit`), and a human bottleneck the loop does not actually need (`selcy-orchestrate`).
+The ten skills exist because each is a distinct job with a distinct contract, and mixing them is what causes the failures they prevent: a builder that reviews its own code shares its own blind spots (`selcy-check`), a test suite that proves the tests but not the spec (`selcy-check verify`), a fix that silences a symptom without explaining it (`selcy-debug`), a standards edit that silently invalidates specs nobody regenerates (`selcy-sync`), a decision settled in chat and lost by the next one (`selcy-grill`), a finding that outlives the chat that found it and gets re-tripped (`selcy-debt`), a project that already exists and cannot get through the greenfield door (`selcy-audit`), a deliberate change with no blast radius that breaks a surface nobody checked (`selcy-sdd change`), and a human bottleneck the loop does not actually need (`selcy-orchestrate`).
 
 ## Requirements
 

@@ -12,7 +12,7 @@ After it runs, you never need it again for this project. You build each feature 
 
 It exists because `/scope` and `/architect` are deliberately one decision at a time. That is correct for a living project, but expensive at project start, when you want the whole context bundle written once and then forgotten about. This skill front loads the interview, then batch writes.
 
-It is the greenfield door. On a codebase that already exists, the door is `/selcy-audit`, which reads the code and writes the same bundle from it. On a decision that is still open later in the project, the interview is available on its own as `/selcy-grill`.
+It is the greenfield door. On a codebase that already exists, the door is `/selcy-audit`, which reads the code and writes the same bundle from it. On a decision that is still open later in the project, the interview is available on its own as `/selcy-grill`. On a deliberate change to a project that already has a bundle, the door is `change` mode, below.
 
 ## The loop it hands off to
 
@@ -96,6 +96,7 @@ One command, intent inferred from state (never a subcommand you must memorize):
 - **`specs`** → skip the interview, regenerate every feature spec from current state and context. Use it after you edit state or a context file by hand and want the specs to match.
 - **`specs <feature>`** → regenerate or add one feature spec only. Use it to enroll a feature you forgot, or to rework one spec without touching the rest.
 - **`context`** → regenerate only the six context files plus the root `AGENTS.md` from state. Use it when the interview answers changed but the feature list did not.
+- **`change`** → the modification door. Interview the change, compute its blast radius, write one change spec. Works on any bundle, including one written by `/selcy-audit`. See **Change mode** below.
 
 Ambiguous (a feature name that also looks like a keyword) → infer the most likely reading, say which one you chose.
 
@@ -107,7 +108,7 @@ Bundled files, all paths relative to this skill's folder, read on demand not upf
 - `interview-guide.md` (the question dimensions and round mechanics) read before the first question.
 - `state-format.md` read before first reading or writing state.
 - `decision-gate.md` (the per feature clear versus unclear decision test) read before generating any feature spec.
-- `templates/*.md` read only at write time, one per output file.
+- `templates/*.md` read only at write time, one per output file. `templates/change-spec.md` is read only in change mode.
 
 ## Execution
 
@@ -120,6 +121,7 @@ Read `context/.sdd-state.md` if it exists (else fresh). Then:
 - Argument is `specs` → skip to Step 4, all features.
 - Argument is `specs <feature>` → skip to Step 4, that feature only.
 - Argument is `context` → skip to Step 3.
+- Argument is `change` → **Change mode**, below.
 
 Tell the user which route you took in one line.
 
@@ -191,3 +193,81 @@ Report, in plain language:
 - The exact next step: open a new chat, run `/selcy-implement 00-project-setup` (it scaffolds the project, cleans the boilerplate, sets up the GitHub repo when one was given, and performs the first deploy when Stage 5c asked for it), then continue with feature 01.
 
 Keep it short. The report is a handoff, not a summary of the project.
+
+## Change mode
+
+The third door. `/selcy-sdd` creates a bundle, `/selcy-audit` inherits one, and `change` **modifies** a project that already has one: your own project after the first build, or a repo you cloned and want to change freely.
+
+It exists because no skill in the loop handles a deliberate change. `/selcy-audit`'s one rule is *the code is the source of truth, never invent*, which is the opposite of an intentional change. `/selcy-grill` settles one decision and writes one line to a standards file, but it does not plan a change that spans surfaces, and it does not look ahead to what the change will break. `/selcy-implement` builds one feature spec and has no concept of editing code that already exists.
+
+**The freedom is in choosing the target, not in how it executes.** You may name anything in the repo, including core internals. What keeps that safe is not a smaller scope, it is knowing what else the change will hit before you touch it. That is what the blast radius is for.
+
+**One change per spec, one spec per chat.** The same rule as features. A change that touches three surfaces is three change specs, each with its own chat, so a mistake in one never reaches the others. You may change anything you like, as many times as you like — just not all at once.
+
+### Step 0: Route and confirm the target
+
+Read `AGENTS.md` at the project root, then the context files it names. Then:
+
+- **No bundle exists** → stop. Say which door applies: `/selcy-sdd` for an empty directory, `/selcy-audit` for a codebase that already exists. `change` mode has nothing to read.
+- **Bundle exists** → continue. It does not matter who wrote it. A bundle from `/selcy-audit` works the same as one from `/selcy-sdd`.
+
+Ask one question, in plain text: **what do you want to change?** If it was given as an argument, restate it in one line and confirm.
+
+Then name the boundary, one line each: what this change touches, and what it does not. A change with no boundary is a rewrite, and a rewrite is not a change.
+
+### Step 1: Interview the change
+
+Use the `/selcy-grill` discipline on the change itself: the change is a design tree, worked in rounds, each round asking the whole frontier, every question a panel of 2 to 4 concrete options with a one line consequence and exactly one `(recommended)`. Read `interview-guide.md` for the round mechanics before the first question.
+
+**Finding facts is your job.** When a question needs a fact, read the code, the config, or the bundle. "Which routes read this column" is answered by grep, not by the engineer. Do not ask for anything you could look up.
+
+**The consequences are the interview.** A change that touches auth does not only touch auth; it touches the session store, the middleware, and every route that reads the session. Each of those is a branch of the tree, and each branch is a question: *this change will also affect X — keep it, change it, or break it?* That is the warning the engineer asked for, and it arrives before anything is written, not after.
+
+The interview is done when the frontier is empty. End with one confirmation round: the whole change shown back, every resolved branch with its source, and one question: approve, or change something.
+
+### Step 2: Blast radius
+
+Before writing any spec, read the bundle and compute what else this change will hit. This is the step that makes a change to core internals safe, and it is the reason this mode exists.
+
+For each surface the change touches, check it against every bundle file and every feature spec that names it:
+
+| Check | Question |
+| --- | --- |
+| `data-model.md` | Which entities, fields, or indexes does this change add, alter, or remove? Which specs reference them? |
+| `architecture-standards.md` | Does this change cross a module boundary the standards file names, or move work between modules? |
+| `security-standards.md` | Does this change touch auth, authorization, validation, or secrets? Which specs inherit the rule it changes? |
+| `error-handling.md` | Does this change alter the error shape or a category every server action inherits? |
+| `testing-standards.md` | Which surfaces does this change touch that the testing standards require covered? |
+| `architecture-context.md` | Does this change add, remove, or rename an env var, invariant, or stack entry? |
+| `ui-context.md` | Does this change alter tokens, typography, or component conventions other features inherit? |
+| Every feature spec | Does this change alter a surface another spec describes as built? |
+
+**Every item in the blast radius carries three things, and an item missing any of them is not finished:**
+
+- **Konsekuensi** — what the change does to that surface, stated plainly. Name the file and the line or section.
+- **Solusi** — the concrete step that keeps the repo working. A command (`/selcy-sdd specs 03-customers-projects`, `/selcy-sync`), or a named edit to a standards file. Not a principle, not a best practice — a step the engineer can run.
+- **Pencegahan** — what to do **before** the change so the breakage never happens. This is where the honest warning lands: when the blast radius touches a surface with no test coverage, say so and name the surface, and recommend `/selcy-test` for that surface **before** the change, not after. A surface with no tests is a surface where a breakage is invisible until production.
+
+**A blast radius item with no solution is a stop condition.** Report it and ask; do not write the spec around it.
+
+### Step 3: Write the change spec
+
+One file, `context/feature-specs/NN-change-<kebab-name.md>`, using `templates/change-spec.md`. It carries everything a feature spec carries — the minimum density floor from Step 2 above applies, including `## Scope Limits` with at least one deferred item — plus two sections a change owns and a feature does not:
+
+- **`## What This Changes`** — per surface, the status quo and the new state. "The `/api/customers` endpoint currently returns X; after this change it returns Y." Written so the engineer can see the delta without diffing the code.
+- **`## Blast Radius`** — the items from Step 2, each with its Konsekuensi, Solusi, and Pencegahan.
+
+**`## Check When Done` must include at least one item that proves existing behavior still works.** A change spec that only verifies the new behavior has not proven the repo did not break. Name the existing surface and the behavior to observe on it. This is what lets `/selcy-check verify` catch a regression without any change to that skill.
+
+Numbering: the next free number, never renumber existing specs. A change spec is a peer of a feature spec — `/selcy-implement` builds it the same way, in its own chat.
+
+### Step 4: Handoff report
+
+Report, in plain language:
+
+- The change as one line.
+- The blast radius, grouped: which specs and standards files this change makes stale, and the exact command to regenerate each.
+- Which surfaces have no test coverage and should get `/selcy-test` **before** the change.
+- The exact next step: a new chat running `/selcy-implement <NN>`.
+
+Then run `/selcy-sync` or tell the engineer to, because a change that touched a standards file may have made other specs stale, and that is what catches it.
