@@ -5,7 +5,7 @@ How to go from an empty folder to a built product, unattended, with Hermes as th
 ## What this is
 
 ```text
-you  ──/selcy-sdd──▶  context/ bundle  ──you approve──▶  /selcy-orchestrate (once)
+you  ──@selcy-sdd──▶  context/ bundle  ──you approve──▶  @selcy-orchestrate (once)
                                                             │
                                                             ▼
                                               kanban board: one card per feature
@@ -19,7 +19,7 @@ you  ──/selcy-sdd──▶  context/ bundle  ──you approve──▶  /se
                                        ┌────────────────────┴───────────────┐
                                        │ worker: delegate one feature       │
                                        │   to `opencode run`                │ ← new session,
-                                       │   as /selcy-implement <NN>         │   visible in your history
+                                       │   as @selcy-implement <NN>         │   visible in your history
                                        │ verify against Check When Done     │
                                        │ kanban_complete / kanban_block     │
                                        └────────────────────────────────────┘
@@ -33,13 +33,13 @@ Five pieces, each with one job:
 | --- | --- | --- |
 | `selcy-orchestrator` profile | Read the card, delegate one feature, verify, close the card | `~/.hermes/profiles/selcy-orchestrator/` |
 | `SOUL.md` | The worker's rules: never build, never edit specs, never answer owed decisions | Same folder |
-| `selcy-orchestrate` skill | The two phases: bootstrap the board, then the worker loop | This repo, `skills/orchestrator/selcy-orchestrate/SKILL.md` |
+| `selcy-orchestrate` skill | The two phases: bootstrap the board, then the worker loop | This repo, `skills/orchestrator@selcy-orchestrate/SKILL.md` |
 | Kanban board | The trigger and the state. One card per feature, chained in order | `~/.hermes/kanban.db` |
 | Gateway dispatcher | The event loop. Claims a ready card every 60s and spawns the worker | Runs as a background service |
 
 The trigger is not a cron job and not a human. It is the dispatcher: a loop inside the gateway that claims any card in `ready` status and spawns the assigned profile. You create the cards once; the board does the rest.
 
-This repo also holds the spec-driven skills (`/selcy-sdd`, `/selcy-audit`, `/selcy-implement`, `/selcy-check`, `/selcy-test`, `/selcy-debug`, `/selcy-grill`, `/selcy-debt`, `/selcy-sync`) under `skills/software-engineer/`, plus `/selcy-sdd change` as the modification door. The orchestrator lives at `skills/orchestrator/selcy-orchestrate`.
+This repo also holds the spec-driven skills (`@selcy-sdd`, `@selcy-audit`, `@selcy-implement`, `@selcy-check`, `@selcy-test`, `@selcy-debug`, `@selcy-grill`, `@selcy-debt`, `@selcy-sync`) under `skills/software-engineer/`, plus `@selcy-sdd change` as the modification door. The orchestrator lives at `skills/orchestrator@selcy-orchestrate`.
 
 ## The three doors, and which one you came through
 
@@ -47,9 +47,9 @@ The bundle can arrive three ways, and the orchestrator does not care which — i
 
 | Door | When |
 | --- | --- |
-| `/selcy-sdd` | Empty directory, you answer the interview, it writes the bundle. |
-| `/selcy-audit` | The code already exists, it reads the code and writes the bundle from what the code says. |
-| `/selcy-sdd change` | The bundle exists and you want a deliberate change — content, UI, an endpoint, the database, core internals. It interviews the change, computes the blast radius, and writes one change spec. |
+| `@selcy-sdd` | Empty directory, you answer the interview, it writes the bundle. |
+| `@selcy-audit` | The code already exists, it reads the code and writes the bundle from what the code says. |
+| `@selcy-sdd change` | The bundle exists and you want a deliberate change — content, UI, an endpoint, the database, core internals. It interviews the change, computes the blast radius, and writes one change spec. |
 
 A change spec is worked exactly like a feature spec: one card, one delegation, the same review and test stages. The tracker does not distinguish them and neither does the worker.
 
@@ -63,7 +63,7 @@ Both install from this repo, but to **different agents, on purpose**. The `-a` f
 ```bash
 cd <new-project-dir>
 
-# The spec-driven skills → the BUILDER. /selcy-sdd and /selcy-implement run inside `opencode run`,
+# The spec-driven skills → the BUILDER. @selcy-sdd and @selcy-implement run inside `opencode run`,
 # so these must land where opencode reads them.
 npx skills@latest add maulanaadib/skills -a opencode
 
@@ -79,14 +79,14 @@ Where each one lands:
 | `maulanaadib/skills` | `-a opencode` | `.agents/skills/` |
 | `maulanaadib/skills` | `-a hermes-agent` | `.hermes/skills/` |
 
-Note: `npx skills add` copies every skill in the repo, so each agent receives all seven. Only the ones that agent invokes will ever load; the rest sit idle. Getting the `-a` flags backwards is still the most common install failure, and it fails silently: the file is on disk, the agent that needs it never loads it. If `opencode run` later says it does not know `/selcy-sdd`, or the Hermes worker says it has no `selcy-orchestrate` skill, check this table.
+Note: `npx skills add` copies every skill in the repo, so each agent receives all seven. Only the ones that agent invokes will ever load; the rest sit idle. Getting the `-a` flags backwards is still the most common install failure, and it fails silently: the file is on disk, the agent that needs it never loads it. If `opencode run` later says it does not know `@selcy-sdd`, or the Hermes worker says it has no `selcy-orchestrate` skill, check this table.
 
 ### 2. Install the orchestrator skill into the Hermes profile
 
 The worker needs the skill on the profile, not just in the project:
 
 ```bash
-hermes -p selcy-orchestrator skills install https://raw.githubusercontent.com/maulanaadib/skills/main/skills/orchestrator/selcy-orchestrate/SKILL.md --yes
+hermes -p selcy-orchestrator skills install https://raw.githubusercontent.com/maulanaadib/skills/main/skills/orchestrator@selcy-orchestrate/SKILL.md --yes
 ```
 
 ### 3. Enable the kanban toolset on the profile
@@ -134,12 +134,12 @@ This is the only Linux-specific gotcha in the whole setup. Everything else — t
 
 ```bash
 cd <new-project-dir>
-opencode run "/selcy-sdd"
+opencode run "@selcy-sdd"
 ```
 
 You answer the panels. You approve the plan at the confirmation panel. The bundle is written to `context/`, plus one file at the project root: `AGENTS.md`, the read order every later chat loads. Root, not `context/`, because that is the file `opencode` auto-loads — the orchestrator's builder is a bare `opencode run` that loads nothing else, so the read order has to be where it is looked for.
 
-**If this project already has a `context/AGENTS.md`** from before this convention, move it to the root and delete the `context/` copy so the two never diverge. `/selcy-sdd` asks before deleting the old file.
+**If this project already has a `context/AGENTS.md`** from before this convention, move it to the root and delete the `context/` copy so the two never diverge. `@selcy-sdd` asks before deleting the old file.
 
 **This is the last time you must be present.** Everything after this is the orchestrator.
 
@@ -152,14 +152,14 @@ hermes -p selcy-orchestrator chat
 Then in the chat:
 
 ```text
-/selcy-orchestrate
+@selcy-orchestrate
 ```
 
 The skill reads `context/progress-tracker.md`, creates one kanban card per remaining feature, chains them in order, and reports the card ids. Then it stops. It does not start working them — that is the dispatcher's job.
 
 ### Phase 3: the build (you are not)
 
-Within 60 seconds the dispatcher claims the first card and spawns the orchestrator profile as a worker. The worker delegates that one feature to `opencode run` as `/selcy-implement <NN>`, verifies the result against the spec's `Check When Done`, and closes the card. Completing a card promotes the next one in the chain, and the next tick spawns the worker again.
+Within 60 seconds the dispatcher claims the first card and spawns the orchestrator profile as a worker. The worker delegates that one feature to `opencode run` as `@selcy-implement <NN>`, verifies the result against the spec's `Check When Done`, and closes the card. Completing a card promotes the next one in the chain, and the next tick spawns the worker again.
 
 You can watch it without touching it:
 
@@ -195,10 +195,10 @@ It stops for one of three reasons. Each has a different response:
 
 | Why it stopped | What you do |
 | --- | --- |
-| **Owed decision** — the builder asked a question the bundle does not answer | Settle it with `/selcy-grill`, then run `/selcy-sync` — the decision goes to the standards file, and sync catches the specs it made stale. Answering it in chat alone loses the answer by the next chat. Then unblock. |
-| **Failed** — the build errored | Read the opencode session for the error. If it is a bug rather than a missing decision, `/selcy-debug` in the build session. Fix the environment or the code, then unblock. Do not blindly re-run. |
+| **Owed decision** — the builder asked a question the bundle does not answer | Settle it with `@selcy-grill`, then run `@selcy-sync` — the decision goes to the standards file, and sync catches the specs it made stale. Answering it in chat alone loses the answer by the next chat. Then unblock. |
+| **Failed** — the build errored | Read the opencode session for the error. If it is a bug rather than a missing decision, `@selcy-debug` in the build session. Fix the environment or the code, then unblock. Do not blindly re-run. |
 | **Review or test failure** — the reviewer found a blocking issue, or a test is red | Read the `-review` or `-test` session for the finding. The fix goes back to the build session, not a new one. Findings are ranked in `context/.reviews/<feature>.md`. |
-| **Gate mismatch** — the builder claimed done but a checklist item is unaddressed | Read the opencode session. Either the item is genuinely missing — `/selcy-sdd specs <feature>` — or the spec is wrong. Fix one of them, then unblock. |
+| **Gate mismatch** — the builder claimed done but a checklist item is unaddressed | Read the opencode session. Either the item is genuinely missing — `@selcy-sdd specs <feature>` — or the spec is wrong. Fix one of them, then unblock. |
 
 Resuming never restarts anything. The board is the state:
 
@@ -216,11 +216,11 @@ The worker reads `progress-tracker.md` first, so it picks up wherever the loop s
 
 **The worker uses a push credential you have already approved.** When a push fails with a permission error and you have named an approved credential, the worker uses it rather than blocking. A card that sits blocked for hours on a 403, while the approved credential sits unused, is a worker waiting for permission it already has. If no credential has been approved, **then** it asks — and says the push is otherwise complete.
 
-**The review stage runs the real `/selcy-check review`.** Not a review prompt the worker invented. That matters because `/selcy-check review` ranks findings by severity, **drops findings that contradict a standards file the code correctly follows** — the standards file is the contract, not the reviewer's taste — and writes the ranked findings to `context/.reviews/<feature>.md`. A hand-rolled review carries none of that, and silently promotes the reviewer's taste over the project's contract.
+**The review stage runs the real `@selcy-check review`.** Not a review prompt the worker invented. That matters because `@selcy-check review` ranks findings by severity, **drops findings that contradict a standards file the code correctly follows** — the standards file is the contract, not the reviewer's taste — and writes the ranked findings to `context/.reviews/<feature>.md`. A hand-rolled review carries none of that, and silently promotes the reviewer's taste over the project's contract.
 
-**The test stage is deliberately not `/selcy-test`.** This is a real conflict, not an oversight. `/selcy-test` scopes from uncommitted changes, and by the time the test stage runs the builder has already committed — the spec's `## Commit and Push` made it, and green tests were its gate. So the working tree is clean and `/selcy-test` would correctly report nothing to test and stop. The test stage wants something different anyway: a suite written from the spec alone, by a session that never saw the builder's reasoning. The builder already wrote its own tests; a suite written from the builder's thinking covers the cases the builder already considered.
+**The test stage is deliberately not `@selcy-test`.** This is a real conflict, not an oversight. `@selcy-test` scopes from uncommitted changes, and by the time the test stage runs the builder has already committed — the spec's `## Commit and Push` made it, and green tests were its gate. So the working tree is clean and `@selcy-test` would correctly report nothing to test and stop. The test stage wants something different anyway: a suite written from the spec alone, by a session that never saw the builder's reasoning. The builder already wrote its own tests; a suite written from the builder's thinking covers the cases the builder already considered.
 
-**The worker names the skill that resolves a block.** When it blocks, it does not just say "owed decision" — it says `/selcy-grill` then `/selcy-sync`, because the engineer reading the block at 2am is not holding the whole suite in their head. The full routing table is in the skill: the orchestrator delegates the two skills that do work inside a build (`/selcy-implement`, `/selcy-check`) and only names the seven that decide, record, or maintain contracts. `/selcy-test` is the one exception — see the conflict note below.
+**The worker names the skill that resolves a block.** When it blocks, it does not just say "owed decision" — it says `@selcy-grill` then `@selcy-sync`, because the engineer reading the block at 2am is not holding the whole suite in their head. The full routing table is in the skill: the orchestrator delegates the two skills that do work inside a build (`@selcy-implement`, `@selcy-check`) and only names the seven that decide, record, or maintain contracts. `@selcy-test` is the one exception — see the conflict note below.
 
 ## The rules that keep this safe
 
@@ -229,8 +229,8 @@ These are in `SOUL.md` and in the skill. They are the reason unattended is safe 
 - **One feature per card, one card per feature.** A failure stays contained to one feature.
 - **Cards are chained in order.** A card only promotes when its parent is done, so a blocked card stops the whole rest of the chain automatically.
 - **The orchestrator never writes application code.** It delegates. If it could build, it could build the wrong thing at full speed.
-- **The build stage delegates to `/selcy-implement`, not a prompt the worker wrote.** This is a safety rule, not a style choice. `/selcy-implement` runs the **input coverage gate**: before writing any code it enumerates every value the build must produce and checks each against the bundle for a named source, and any required value with no named source is an owed decision that stops the build and asks. A build prompt the orchestrator invented has no gate at all, which means a builder running unattended invents a money rule or a permission model mid feature and nobody finds out until review. The gate is the mechanism that makes unattended builds safe, and delegating is the only way the orchestrator gets it.
-- **The orchestrator never edits `context/`.** Those are contracts. A wrong spec is a human decision. The root `AGENTS.md` is part of that contract set — it is generated by `/selcy-sdd`, not edited by the orchestrator.
+- **The build stage delegates to `@selcy-implement`, not a prompt the worker wrote.** This is a safety rule, not a style choice. `@selcy-implement` runs the **input coverage gate**: before writing any code it enumerates every value the build must produce and checks each against the bundle for a named source, and any required value with no named source is an owed decision that stops the build and asks. A build prompt the orchestrator invented has no gate at all, which means a builder running unattended invents a money rule or a permission model mid feature and nobody finds out until review. The gate is the mechanism that makes unattended builds safe, and delegating is the only way the orchestrator gets it.
+- **The orchestrator never edits `context/`.** Those are contracts. A wrong spec is a human decision. The root `AGENTS.md` is part of that contract set — it is generated by `@selcy-sdd`, not edited by the orchestrator.
 - **The orchestrator never answers an owed decision.** It surfaces the question verbatim and blocks. It never picks the recommended option on your behalf.
 - **The orchestrator has no memory between ticks.** Every spawn is a fresh turn. State lives in the card and in `context/`, never in chat. This is why a correction you gave it once can appear to be forgotten after a restart — it was never written down.
 - **A failed build is never auto-retried.** The card stays blocked until a human unblocks it. A retry without new information is the same failure again.
@@ -241,10 +241,10 @@ These are in `SOUL.md` and in the skill. They are the reason unattended is safe 
 
 ## When not to use this
 
-- **You want to review each feature before the next one starts.** This is unattended. Use `/selcy-implement` per feature in a new chat instead.
-- **The project has no spec bundle.** Run `/selcy-sdd` on a new project, or `/selcy-audit` on a codebase that already exists. The orchestrator will refuse and tell you which door applies.
-- **You want to change what is being built.** Run `/selcy-sdd change` — it interviews the change, computes the blast radius, and writes one change spec. Then resume; the orchestrator works it like any feature. The orchestrator never edits the bundle for you.
-- **The change is one open decision, not a change plan.** Use `/selcy-grill` — it settles one decision and writes one line to the standards file. `/selcy-sdd change` is for a change that spans surfaces and needs a blast radius.
+- **You want to review each feature before the next one starts.** This is unattended. Use `@selcy-implement` per feature in a new chat instead.
+- **The project has no spec bundle.** Run `@selcy-sdd` on a new project, or `@selcy-audit` on a codebase that already exists. The orchestrator will refuse and tell you which door applies.
+- **You want to change what is being built.** Run `@selcy-sdd change` — it interviews the change, computes the blast radius, and writes one change spec. Then resume; the orchestrator works it like any feature. The orchestrator never edits the bundle for you.
+- **The change is one open decision, not a change plan.** Use `@selcy-grill` — it settles one decision and writes one line to the standards file. `@selcy-sdd change` is for a change that spans surfaces and needs a blast radius.
 
 ## Uninstall or disable
 

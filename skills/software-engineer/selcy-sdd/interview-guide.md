@@ -136,7 +136,7 @@ Only if the product has a UI. Needed because `ui-context.md` is a foundation fil
 - **A design reference file exists but no `ui-context.md`** (the engineer names one, or a file like `design.md`, `design-system.md`, or a screenshot/repo reference is present at the project root) → **extract from it instead of asking.** Read the reference, derive the color table, typography, and radius scale from what it actually shows, and write them into `ui-context.md` with a `## Design Reference` section pointing back at the file. Then ask only what the reference cannot answer: **component foundation** (a component library versus hand rolled), because that is an implementation decision, not a design one. Say what you extracted and what you are still asking.
 - **Neither exists** → run the full stage below.
 
-This gate is what makes the skill usable on a project where the design is already decided. Without it, `/selcy-sdd` re-interviews a settled design and may recommend against it.
+This gate is what makes the skill usable on a project where the design is already decided. Without it, `@selcy-sdd` re-interviews a settled design and may recommend against it.
 
 - **Theme mode.** Dark only, light only, or both. (Recommended: pick one only for the first build; theming both is a feature of its own.)
 - **Color direction.** A named direction plus the accent color or colors. If the engineer has brand colors, take the hex values now.
