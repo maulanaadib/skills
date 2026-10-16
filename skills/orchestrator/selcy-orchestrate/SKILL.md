@@ -261,6 +261,15 @@ The worker never retries a failed build blindly, never answers an owed decision,
   - **Review or test failure** — the reviewer found a blocking issue, or a test is red. Surface the finding verbatim, and which session produced it.
 - **The exact command** to resume once the engineer has resolved it.
 
+**Missing prototype is a block, not a guess.** If the feature spec names a
+`## UI Reference` whose file does not exist at the project root (no
+`design-<name>.pen`, no PNG), the worker does **not** let the builder invent
+the screen. Block the card as a **Gate mismatch**: name the missing reference
+file, and say the unblock is a validated prototype at that path (pen.dev
+session with the spec's screen list + `ui-context.md` tokens, saved to root).
+A builder that proceeds without the frame redesigns the screen from taste,
+and the review stage then has nothing to compare the render against.
+
 Then call `kanban_block(reason="...")` with the above. Do not delegate the next feature. A failed feature means the next one may be built on a broken foundation — and the parent chain means the next card will not promote anyway.
 
 **Name the skill that resolves it.** The engineer's unblock is not just "answer the question" — for most block kinds there is a skill that settles it properly, and the engineer may not be holding the whole suite in their head when they read the block at 2am:

@@ -134,7 +134,23 @@ Only if the product has a UI. Needed because `ui-context.md` is a foundation fil
 
 - **`ui-context.md` already exists** → **skip this stage entirely.** Read it back into state, say "UI direction is already settled in `ui-context.md`, skipping this stage," and continue to Stage 5. Do not re-ask theme, color, typography, or component foundation. The engineer already answered.
 - **A design reference file exists but no `ui-context.md`** (the engineer names one, or a file like `design.md`, `design-system.md`, or a screenshot/repo reference is present at the project root) → **extract from it instead of asking.** Read the reference, derive the color table, typography, and radius scale from what it actually shows, and write them into `ui-context.md` with a `## Design Reference` section pointing back at the file. Then ask only what the reference cannot answer: **component foundation** (a component library versus hand rolled), because that is an implementation decision, not a design one. Say what you extracted and what you are still asking.
-- **Neither exists** → run the full stage below.
+- **Neither exists** → check UI risk before running the full stage below. If the
+  product has **5 or more screens, or any screen whose composition is genuinely
+  unknown** (novel layout, untested user flow, no reference app) → **recommend a
+  pen.dev session first**, before writing tokens. Say it as a panel: **design
+  tool session first** (recommended when UI risk is real — wireframes resolve
+  layout before tokens lock it in) or **skip to tokens now** (when the
+  engineer already knows the layout and wants speed). If they pick the session:
+  hand them the screen list (from the `## Screens` table — write it first, even
+  provisionally, so the tool has something to work from), the three files
+  (`ui-context.md` tokens so far, `product-context.md`, `project-overview.md`),
+  and tell them to return with a `design-<name>.pen` (or PNG) saved at the
+  project root. On return, **extract from it instead of asking** (same rule as
+  the design-reference gate above) and record it under `## Design Reference`.
+  This gate is what connects the suite to the design tool: without it, tokens
+  are written blind and the first time anyone sees the layout is mid-build.
+  Only when UI risk is low → run the full stage below.
+- **Neither exists and UI risk is low** → run the full stage below.
 
 This gate is what makes the skill usable on a project where the design is already decided. Without it, `@selcy-sdd` re-interviews a settled design and may recommend against it.
 

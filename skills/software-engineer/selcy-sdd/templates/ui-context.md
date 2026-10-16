@@ -33,3 +33,16 @@ Radius increases with surface depth — smaller for inner elements, larger for o
 <COMPONENT_CONVENTION_BULLETS>## Design Reference
 
 <DESIGN_REFERENCE_BLOCK>
+
+## Screens
+
+Ordered list of the product's screens. Each row traces back to a job in
+`product-context.md` — a screen with no job is cut. This is the screen list a
+design tool (pen.dev, Figma AI) works from: tokens above say *how it looks*,
+this table says *what exists*.
+
+| # | Screen | One-line purpose | Job (product-context.md) |
+| --- | --- | --- | --- |
+| 1 | <SCREEN_NAME> | <WHAT_THE_USER_DOES_HERE> | <JOB_ID_OR_DESCRIPTION> |
+
+<SCREEN_TABLE_ROWS>

@@ -80,6 +80,16 @@ Also owed, without enumerating:
 - a permission or ownership rule (who may read and mutate what),
 - money or timezone handling, if the bundle never settled the rule and this feature touches it.
 
+**Design reference wins.** If the feature spec names a `## UI Reference`
+(`design-<name>.pen` or PNG at the project root), build the UI to that frame:
+layout, hierarchy, and states follow the prototype, not a fresh reading of the
+tokens. If the prototype contradicts `ui-context.md`, the prototype wins and
+you say so in the handoff (the engineer updates `ui-context.md` from the
+prototype afterward — a design that was seen beats a file that assumed). What
+the prototype cannot answer (tokens it never shows, states it never draws)
+falls back to `ui-context.md` normally. Never redesign a referenced screen
+from taste.
+
 **Gate passes** → Step 3. Say in one line that it passed, so the engineer knows the build is grounded.
 
 **Gate fails** → do not invent. Present what is owed as a decision panel, one question per owed decision, batched up to four, each with options and one marked `(recommended)`:

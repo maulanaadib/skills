@@ -20,6 +20,14 @@
 
 <SCOPE_LIMIT_BULLETS>
 
+## UI Reference
+
+<UI_REFERENCE_BLOCK_OR_NONE — for a feature with UI: path to the validated
+prototype (`design-<name>.pen` or PNG at the project root) plus the one-line
+note "build to this frame". For a feature with no UI: write `None.` A builder
+that cannot find this section redesigns the screen from taste; a reviewer that
+cannot find it has nothing to compare the render against.>
+
 ## Check When Done
 
 <CHECK_BULLETS>
