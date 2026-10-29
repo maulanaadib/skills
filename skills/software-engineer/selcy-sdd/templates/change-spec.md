@@ -37,8 +37,8 @@ What else this change hits, and what to do about it. Every item carries all thre
 ### BR-1: <SURFACE_OR_CONTRACT_NAME>
 
 - **Konsekuensi:** <WHAT_THIS_CHANGE_DOES_TO_THAT_SURFACE, with the file and section>
-- **Solusi:** <THE_CONCRETE_STEP: a command like @selcy-sdd specs 03-customers-projects, or a named edit to a standards file>
-- **Pencegahan:** <WHAT_TO_DO_BEFORE_THE_CHANGE, including @selcy-test for an uncovered surface>
+- **Solusi:** <THE_CONCRETE_STEP: a command like /selcy-sdd specs 03-customers-projects, or a named edit to a standards file>
+- **Pencegahan:** <WHAT_TO_DO_BEFORE_THE_CHANGE, including /selcy-test for an uncovered surface>
 
 ### BR-2: <SURFACE_OR_CONTRACT_NAME>
 

@@ -1,14 +1,14 @@
 ---
 name: selcy-sync
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent
-description: "Run @selcy-sync after you edit a context/ file by hand, or after a feature lands, to keep the bundle honest. Reconciles progress-tracker.md against the repo, detects a context file that drifted from the feature specs, and flags specs the change made stale. Surgical edits only: adds lines, rewrites single lines it owns. Never a whole section, never curated prose."
+description: "Run /selcy-sync after you edit a context/ file by hand, or after a feature lands, to keep the bundle honest. Reconciles progress-tracker.md against the repo, detects a context file that drifted from the feature specs, and flags specs the change made stale. Surgical edits only: adds lines, rewrites single lines it owns. Never a whole section, never curated prose."
 ---
 
 ## What this skill does
 
 Closes the loop on a completed change, and closes the one real gap the bundle has: nothing forces a builder to notice that a context file changed after the specs were written.
 
-The bundle is a set of contracts. A standards file is a contract every feature spec inherits. When you edit one by hand, every spec that depends on it is now potentially stale, and the next `@selcy-implement` chat will read a spec whose details no longer match the standards it is supposed to follow. This skill is what catches that.
+The bundle is a set of contracts. A standards file is a contract every feature spec inherits. When you edit one by hand, every spec that depends on it is now potentially stale, and the next `/selcy-implement` chat will read a spec whose details no longer match the standards it is supposed to follow. This skill is what catches that.
 
 Run it in two situations:
 
@@ -28,12 +28,12 @@ Run it in two situations:
 Read the repo, then read `context/progress-tracker.md`. For each feature it lists:
 
 - **Completed** → verify the evidence exists: the code, the tests, the commit. If the repo shows the work but the tracker does not say Completed, correct the row. If the tracker says Completed but the repo shows no evidence, flag it; do not silently revert it, because the engineer may know something the repo does not show.
-- **In Progress** → verify the work is partway. If the repo shows it finished, propose marking it Completed and running `@selcy-check` to confirm.
+- **In Progress** → verify the work is partway. If the repo shows it finished, propose marking it Completed and running `/selcy-check` to confirm.
 - **Next Up** → verify nothing in the repo already built it. If something did, flag it: either the feature was built without a spec, or the tracker is behind.
 
 Surgical edits only. Correct a cell, never rewrite the file. Flag unexpected state instead of clobbering it.
 
-Session Notes is the one section that does grow without bound, because findings land there when they have nowhere else to go. When it carries a bug that predates the feature being tracked, or a gotcha the next chat needs, point at `@selcy-debt` as the file that owns those. Sync reconciles progress; it does not migrate findings.
+Session Notes is the one section that does grow without bound, because findings land there when they have nowhere else to go. When it carries a bug that predates the feature being tracked, or a gotcha the next chat needs, point at `/selcy-debt` as the file that owns those. Sync reconciles progress; it does not migrate findings.
 
 ### Step 2: Drift check (the reason this skill exists)
 
@@ -50,9 +50,9 @@ For each drift found, report:
 
 - the file and line that changed,
 - the spec and section that now contradicts it,
-- the recommended fix, which is almost always: regenerate that spec with `@selcy-sdd specs <feature>`.
+- the recommended fix, which is almost always: regenerate that spec with `/selcy-sdd specs <feature>`.
 
-**This skill never rewrites a feature spec.** It detects and reports. Regenerating is `@selcy-sdd`'s job, because regeneration may surface a new owed decision that needs a panel.
+**This skill never rewrites a feature spec.** It detects and reports. Regenerating is `/selcy-sdd`'s job, because regeneration may surface a new owed decision that needs a panel.
 
 ### Step 3: Flag what it must not touch
 
@@ -60,14 +60,14 @@ Report, without editing:
 
 - **Curated prose** in any context file: prose the engineer wrote by hand, as opposed to fields the bootstrap generated. When unsure whether a passage is curated, flag it as a conflict and let the engineer decide.
 - **A spec whose feature is In Progress.** It is being built right now; syncing it mid build would change the contract under the builder. Flag it and come back after the feature lands.
-- The feature list itself. Adding, removing, or reordering features is `@selcy-sdd`'s.
+- The feature list itself. Adding, removing, or reordering features is `/selcy-sdd`'s.
 
 ### Step 4: Report
 
 In plain language:
 
 - What was reconciled and corrected (with the exact cells).
-- What drifted, and the exact `@selcy-sdd specs <feature>` command to fix each.
+- What drifted, and the exact `/selcy-sdd specs <feature>` command to fix each.
 - What was flagged and left alone, and why.
 
 Keep it short. It is a report, not an audit document.

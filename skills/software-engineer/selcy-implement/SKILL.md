@@ -1,20 +1,20 @@
 ---
 name: selcy-implement
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion
-description: "Run @selcy-implement to build one feature spec into working code. Reads the context/ bundle (AGENTS.md plus the context files it names) and the one feature spec, gates on input coverage so nothing load bearing is invented mid build, builds, runs the spec's Check When Done, updates progress-tracker.md, and commits. The builder half of @selcy-sdd."
+description: "Run /selcy-implement to build one feature spec into working code. Reads the context/ bundle (AGENTS.md plus the context files it names) and the one feature spec, gates on input coverage so nothing load bearing is invented mid build, builds, runs the spec's Check When Done, updates progress-tracker.md, and commits. The builder half of /selcy-sdd."
 ---
 
 ## What this skill does
 
-The builder. It turns one feature spec into working code, and it is the skill the `@selcy-sdd` bundle is shaped for.
+The builder. It turns one feature spec into working code, and it is the skill the `/selcy-sdd` bundle is shaped for.
 
-`@selcy-sdd` runs once and writes the whole `context/` bundle. `@selcy-implement` runs once per feature, in its own new chat, and builds exactly one spec. Nothing else in the bundle is in scope for that chat.
+`/selcy-sdd` runs once and writes the whole `context/` bundle. `/selcy-implement` runs once per feature, in its own new chat, and builds exactly one spec. Nothing else in the bundle is in scope for that chat.
 
 It exists because a generic builder skill pointed at a different file convention cannot find this bundle. A builder that looks for specs under `docs/specs/` will not find one under `context/feature-specs/`, so it gates and asks questions whose answers are already written down. This skill reads the bundle where the bootstrap put it.
 
 ## The loop it serves
 
-1. New chat. Run `@selcy-implement`, or `@selcy-implement <feature>`.
+1. New chat. Run `/selcy-implement`, or `/selcy-implement <feature>`.
 2. The builder resolves the feature, reads `AGENTS.md` at the project root, then the context files it names, then the one feature spec.
 3. It gates: every value the build must produce has a named source in the bundle, or it stops and asks.
 4. It builds, following the standards files as contracts.
@@ -42,7 +42,7 @@ One command, intent inferred from state:
 
 Read `context/progress-tracker.md` first. Then:
 
-- No `context/` bundle at all → stop. Tell the engineer to run `@selcy-sdd` first on a new project, or `@selcy-audit` on a codebase that already exists; there is nothing to build from either way.
+- No `context/` bundle at all → stop. Tell the engineer to run `/selcy-sdd` first on a new project, or `/selcy-audit` on a codebase that already exists; there is nothing to build from either way.
 - No feature spec found for the argument → stop, and list what is in `context/feature-specs/`.
 - Feature already Completed and this is not a `rework` → warn, and ask whether to rework or pick another.
 - Otherwise → proceed, and say in one line which feature you resolved and how.
@@ -51,7 +51,7 @@ Read `context/progress-tracker.md` first. Then:
 
 Read `AGENTS.md` at the project root and follow its read order exactly: it lists the context files in the order a builder needs them. Then read the one feature spec.
 
-**Where it lives matters.** The read order is at the **project root**, not under `context/`, because that is the file agents auto-load. If you find a `context/AGENTS.md` instead, read it — it is a bundle from before the root convention, and the bundle is still the bundle — but say so in one line, because that project needs the one-time move `@selcy-sdd` documents.
+**Where it lives matters.** The read order is at the **project root**, not under `context/`, because that is the file agents auto-load. If you find a `context/AGENTS.md` instead, read it — it is a bundle from before the root convention, and the bundle is still the bundle — but say so in one line, because that project needs the one-time move `/selcy-sdd` documents.
 
 Do not read other feature specs. They are out of scope, and reading them invites scope creep.
 
@@ -95,7 +95,7 @@ from taste.
 **Gate fails** → do not invent. Present what is owed as a decision panel, one question per owed decision, batched up to four, each with options and one marked `(recommended)`:
 
 - **Answer now** (recommended when the engineer knows it and it is this feature's business rule): the answer is written into the spec and into `context/.sdd-state.md`, then the build continues.
-- **Regenerate the spec**: route to `@selcy-sdd specs <feature>`, when the decision is load bearing and touches more than this feature. Stop this chat; the next `@selcy-implement` picks up the regenerated spec.
+- **Regenerate the spec**: route to `/selcy-sdd specs <feature>`, when the decision is load bearing and touches more than this feature. Stop this chat; the next `/selcy-implement` picks up the regenerated spec.
 - **Build on a flagged assumption**: record the assumption in `progress-tracker.md` under Open Questions as decision debt, build on it, and say plainly it is unratified. Cheap and honest; the debt stays visible until someone settles it.
 
 Never silently pick. An unnamed source is exactly the failure the bundle exists to prevent.
@@ -135,7 +135,7 @@ Per the spec's `## Progress Tracker` section, which names the exact fields. Move
 
 Do not touch other features' rows. If this build turned out to cross a feature boundary, stop and say so instead of editing another spec's scope.
 
-If the build surfaced a bug that predates it, in another feature's code, do not fix it here. Record it with `@selcy-debt` and finish this feature. Fixing another feature from inside this chat is scope creep in the exact shape this loop exists to prevent, and the finding would be lost when this chat closes.
+If the build surfaced a bug that predates it, in another feature's code, do not fix it here. Record it with `/selcy-debt` and finish this feature. Fixing another feature from inside this chat is scope creep in the exact shape this loop exists to prevent, and the finding would be lost when this chat closes.
 
 ### Step 6: Commit and push
 
@@ -152,7 +152,7 @@ If the project is local only (no repository URL in state), step 6 is skipped: co
 
 ### Step 7: Handoff
 
-Report in plain language: what was built, which `Check When Done` items passed, what was left as decision debt, and the exact next step, which is always: close this chat, open a new one, run `@selcy-implement` for the next feature.
+Report in plain language: what was built, which `Check When Done` items passed, what was left as decision debt, and the exact next step, which is always: close this chat, open a new one, run `/selcy-implement` for the next feature.
 
 Keep it short. It is a handoff, not a summary of the project.
 
@@ -163,7 +163,7 @@ Keep it short. It is a handoff, not a summary of the project.
 - Never invents a value the bundle does not name.
 - Never commits on a red test or a failed check.
 - Never picks the commit branch without asking, when the spec left the branch open. When the spec names it, commit to it — the engineer settled that at planning time.
-- Never renumbers or rewrites the feature list; that is `@selcy-sdd`'s.
+- Never renumbers or rewrites the feature list; that is `/selcy-sdd`'s.
 
 ## Portability
 

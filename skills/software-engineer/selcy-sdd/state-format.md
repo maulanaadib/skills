@@ -148,4 +148,4 @@ On resume, read the whole file, then:
 
 - Use the next free number. Never renumber existing features.
 - Fill `intent` and `done when`. Leave `spec: not generated`.
-- Then run `@selcy-sdd specs <feature>` to generate just that one.
+- Then run `/selcy-sdd specs <feature>` to generate just that one.

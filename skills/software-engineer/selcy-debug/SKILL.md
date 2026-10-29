@@ -1,7 +1,7 @@
 ---
 name: selcy-debug
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent
-description: "Run @selcy-debug when something is broken. Reproduces the bug on demand, narrows it to the smallest failing surface, changes one thing at a time, fixes the root cause with the smallest possible change, and hands a regression test to @selcy-test. No features, no extra refactors."
+description: "Run /selcy-debug when something is broken. Reproduces the bug on demand, narrows it to the smallest failing surface, changes one thing at a time, fixes the root cause with the smallest possible change, and hands a regression test to /selcy-test. No features, no extra refactors."
 ---
 
 ## What this skill does
@@ -18,11 +18,11 @@ Acts. It reproduces, investigates, and fixes. It asks only when it cannot reprod
 
 ## Artifact ownership
 
-Writes the minimal code fix for the root cause. Recommends `@selcy-test` for the regression test, or writes a failing then passing test inline if that is the fastest proof. Does not add features, refactor unrelated code, or rewrite a spec.
+Writes the minimal code fix for the root cause. Recommends `/selcy-test` for the regression test, or writes a failing then passing test inline if that is the fastest proof. Does not add features, refactor unrelated code, or rewrite a spec.
 
-If the bug reveals a flawed decision rather than a coding mistake, it says so and points at `@selcy-sdd specs <feature>` rather than papering over it. A bug caused by a wrong standards file is not fixed by editing code around it.
+If the bug reveals a flawed decision rather than a coding mistake, it says so and points at `/selcy-sdd specs <feature>` rather than papering over it. A bug caused by a wrong standards file is not fixed by editing code around it.
 
-If the bug predates the change being investigated, it is not this feature's to fix here. Record it with `@selcy-debt` and hand it to the feature that owns it.
+If the bug predates the change being investigated, it is not this feature's to fix here. Record it with `/selcy-debt` and hand it to the feature that owns it.
 
 ## Execution
 
@@ -65,7 +65,7 @@ The bug no longer reproduces under the exact steps from Step 0, and the feature'
 
 ### Step 6: Hand off the regression test
 
-Recommend `@selcy-test` for a regression test that would catch this bug if it returns. Or write a failing test that reproduces the bug, confirm it fails before the fix and passes after, and hand it to the engineer.
+Recommend `/selcy-test` for a regression test that would catch this bug if it returns. Or write a failing test that reproduces the bug, confirm it fails before the fix and passes after, and hand it to the engineer.
 
 The regression test is the point. A bug fixed without one is a bug that can come back unnoticed.
 

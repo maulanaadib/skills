@@ -8,7 +8,7 @@ A feature spec is a build contract. Every value the builder must produce, comput
 
 > Enumerate every value this build must produce, compute, or display. For each, does the bundle name where it comes from? Any required value with no named source is an unresolved decision, and it must be asked, not invented.
 
-This is the same input coverage test `@selcy-implement` runs on itself. If the gate passes here, the build runs without stopping. If it fails here, the build would have stopped, or worse, silently invented. Asking now is strictly cheaper.
+This is the same input coverage test `/selcy-implement` runs on itself. If the gate passes here, the build runs without stopping. If it fails here, the build would have stopped, or worse, silently invented. Asking now is strictly cheaper.
 
 ## Step 1: Enumerate the decisions
 

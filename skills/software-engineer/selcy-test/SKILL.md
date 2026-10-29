@@ -1,7 +1,7 @@
 ---
 name: selcy-test
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion
-description: "Run @selcy-test after @selcy-implement builds a feature, to write the test suite the feature deserves. Scopes from git uncommitted changes, reads the context/ testing standards to know what must be covered first, and picks the right strategy per file: happy path, edge cases, error states, accessibility. Saves the framework choice so it never asks twice."
+description: "Run /selcy-test after /selcy-implement builds a feature, to write the test suite the feature deserves. Scopes from git uncommitted changes, reads the context/ testing standards to know what must be covered first, and picks the right strategy per file: happy path, edge cases, error states, accessibility. Saves the framework choice so it never asks twice."
 ---
 
 ## What this skill does
@@ -12,7 +12,7 @@ Target: the code changed in this feature but not yet committed. Each changed fil
 
 It reads `context/testing-standards.md` first, because that file already decided what this project must test first (anything doing money, auth, or permissions), which runners to use, and what done means. It does not rederive those choices per feature.
 
-Does not write application code. Does not update the context files (`@selcy-sync` owns that).
+Does not write application code. Does not update the context files (`/selcy-sync` owns that).
 
 ## Asks vs acts
 
@@ -68,7 +68,7 @@ Write the tests next to the code, following the project's existing test layout. 
 
 ### Step 6: Run or hand off
 
-Run the suite, or hand back the exact commands. If it runs and anything is red, that is a finding for `@selcy-implement`, not a thing to fix here: this skill writes tests, it does not fix the code they cover. If the red is in code this feature did not touch, it is pre-existing: record it with `@selcy-debt` and keep this feature's suite honest about what it proved.
+Run the suite, or hand back the exact commands. If it runs and anything is red, that is a finding for `/selcy-implement`, not a thing to fix here: this skill writes tests, it does not fix the code they cover. If the red is in code this feature did not touch, it is pre-existing: record it with `/selcy-debt` and keep this feature's suite honest about what it proved.
 
 ## What this skill never does
 

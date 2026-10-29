@@ -1,23 +1,23 @@
 ---
 name: selcy-grill
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion
-description: "Run @selcy-grill on any decision in a running project. Interviews you relentlessly across the design tree until every branch is resolved, then writes the decision down where the bundle keeps it. The interview primitive behind @selcy-sdd, usable on its own. Use it before a change whose design is still open."
+description: "Run /selcy-grill on any decision in a running project. Interviews you relentlessly across the design tree until every branch is resolved, then writes the decision down where the bundle keeps it. The interview primitive behind /selcy-sdd, usable on its own. Use it before a change whose design is still open."
 ---
 
 ## What this skill does
 
-The interview primitive, on its own. `@selcy-sdd` uses this discipline once, at project start, to settle everything before the bundle is written. This skill uses it on **one decision**, in a project that is already running, when you are about to touch something whose design is still open.
+The interview primitive, on its own. `/selcy-sdd` uses this discipline once, at project start, to settle everything before the bundle is written. This skill uses it on **one decision**, in a project that is already running, when you are about to touch something whose design is still open.
 
 You run it instead of guessing. You have a change in mind, you can feel that the design is not settled, and you know that if you start building now the builder will either invent the answer or stop and ask you mid build. This skill settles it first.
 
-It exists because the interview was locked inside `@selcy-sdd`, which runs once. Every project after that first run, and every brownfield project that never ran it, had no way to get a decision grilled. The frontier mechanics are the useful part; the one-shot framing was not.
+It exists because the interview was locked inside `/selcy-sdd`, which runs once. Every project after that first run, and every brownfield project that never ran it, had no way to get a decision grilled. The frontier mechanics are the useful part; the one-shot framing was not.
 
 ## When to run it
 
 - **Before a change whose design is open.** You are about to touch the payment flow, or add a new entity, or change how sessions work, and you can name two or three ways it could go.
-- **When `@selcy-implement`'s gate failed.** It stopped and said a value has no named source. That is an owed decision, and this skill is how you settle it properly instead of answering it in the builder's chat, under pressure, mid build.
+- **When `/selcy-implement`'s gate failed.** It stopped and said a value has no named source. That is an owed decision, and this skill is how you settle it properly instead of answering it in the builder's chat, under pressure, mid build.
 - **When you disagree with a standards file.** The bundle says one thing, the code says another, or you have learned something since it was written. Grill the decision, then update the file with the outcome.
-- **When a bug revealed a flawed decision.** `@selcy-debug` says "this is not a coding mistake, the decision was wrong." Grill the replacement decision before rebuilding on it.
+- **When a bug revealed a flawed decision.** `/selcy-debug` says "this is not a coding mistake, the decision was wrong." Grill the replacement decision before rebuilding on it.
 
 Do not run it for a change with one obvious implementation. Grilling a settled question wastes everyone's time and trains you to skip the skill when the question is hard.
 
@@ -62,7 +62,7 @@ If there is a `context/` bundle, read the file that owns this kind of decision *
 | Theme, colors, typography, components | `ui-context.md` |
 | Type strictness, folder contract, git workflow | `code-standards.md` |
 
-A decision that contradicts a standards file is not settled by this skill alone. It is settled here, then written to that file, and `@selcy-sync` is what flags the specs that the change made stale.
+A decision that contradicts a standards file is not settled by this skill alone. It is settled here, then written to that file, and `/selcy-sync` is what flags the specs that the change made stale.
 
 ## Step 1: Build the tree, silently
 
@@ -116,9 +116,9 @@ Then one confirmation round: the whole decision shown back, with every resolved 
 
 A decision that stays in chat is a decision the next chat does not have. Where it goes depends on what exists:
 
-**A `context/` bundle exists** → write it to the file that owns it, from the table in Step 0. Surgical edit: add a line, or rewrite the one line this decision replaced. Never rewrite a whole section, and never touch prose the engineer wrote by hand without asking. Then run `@selcy-sync` or tell the engineer to, because a standards file change may have made specs stale, and that is what catches it.
+**A `context/` bundle exists** → write it to the file that owns it, from the table in Step 0. Surgical edit: add a line, or rewrite the one line this decision replaced. Never rewrite a whole section, and never touch prose the engineer wrote by hand without asking. Then run `/selcy-sync` or tell the engineer to, because a standards file change may have made specs stale, and that is what catches it.
 
-**No bundle exists** → write it to `decisions/` at the project root, one file per decision, dated, with the question, the options, the pick, and the why. This is the thinnest possible record, and it is enough for a project that is not using the full loop. If the project later runs `@selcy-audit`, those files are the first place it looks for decisions the code cannot express.
+**No bundle exists** → write it to `decisions/` at the project root, one file per decision, dated, with the question, the options, the pick, and the why. This is the thinnest possible record, and it is enough for a project that is not using the full loop. If the project later runs `/selcy-audit`, those files are the first place it looks for decisions the code cannot express.
 
 **The decision is load bearing and hard to reverse** → also write it as an ADR, in `docs/adr/` or wherever the project keeps them, following the convention the repo already uses. Only when all three are true: hard to reverse, surprising without context, and the result of a real trade off. If any is missing, the line in the standards file is enough and an ADR is ceremony.
 
@@ -129,17 +129,17 @@ In plain language:
 - The decision, in one sentence.
 - What it settled, and what it left open on purpose, with the reason.
 - Where it was written, with the file path.
-- What it made stale, if anything, and the exact `@selcy-sync` or `@selcy-sdd specs <feature>` command to fix each.
-- The exact next step: usually `@selcy-implement`, now that the gate that stopped it has an answer.
+- What it made stale, if anything, and the exact `/selcy-sync` or `/selcy-sdd specs <feature>` command to fix each.
+- The exact next step: usually `/selcy-implement`, now that the gate that stopped it has an answer.
 
 Keep it short. The decision is the artifact; the report is a handoff.
 
 ## What this skill never does
 
-- **Never builds anything.** It settles a decision and writes it down. Building is `@selcy-implement`.
+- **Never builds anything.** It settles a decision and writes it down. Building is `/selcy-implement`.
 - **Never asks a question it could answer by reading.** Looking up a fact is your job.
 - **Never writes to chat memory and calls it done.** If it is not in a file, the next chat does not have it.
-- **Never edits a feature spec.** If the decision changes what a feature must build, that spec is regenerated by `@selcy-sdd specs <feature>`, not edited here.
+- **Never edits a feature spec.** If the decision changes what a feature must build, that spec is regenerated by `/selcy-sdd specs <feature>`, not edited here.
 - **Never rewrites a standards file wholesale.** Surgical edits only. A standards file is a contract other features are built against; a rewrite breaks them all.
 - **Never skips the confirmation round.** An unconfirmed decision written to a contract file is a silent decision, which is the exact failure this loop exists to prevent.
 

@@ -152,7 +152,7 @@ Only if the product has a UI. Needed because `ui-context.md` is a foundation fil
   Only when UI risk is low → run the full stage below.
 - **Neither exists and UI risk is low** → run the full stage below.
 
-This gate is what makes the skill usable on a project where the design is already decided. Without it, `@selcy-sdd` re-interviews a settled design and may recommend against it.
+This gate is what makes the skill usable on a project where the design is already decided. Without it, `/selcy-sdd` re-interviews a settled design and may recommend against it.
 
 - **Theme mode.** Dark only, light only, or both. (Recommended: pick one only for the first build; theming both is a feature of its own.)
 - **Color direction.** A named direction plus the accent color or colors. If the engineer has brand colors, take the hex values now.

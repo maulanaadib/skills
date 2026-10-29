@@ -1,16 +1,16 @@
 ---
 name: selcy-audit
 allowed-tools: Bash, Read, Grep, Glob, Write, Edit, Agent, AskUserQuestion
-description: "Run @selcy-audit on an existing codebase with no context/ bundle. Reads the real code and reverse-engineers the context/ bundle from it, so @selcy-implement, @selcy-check, @selcy-test and @selcy-sync work on a project you did not start from scratch. Observes, never invents."
+description: "Run /selcy-audit on an existing codebase with no context/ bundle. Reads the real code and reverse-engineers the context/ bundle from it, so /selcy-implement, /selcy-check, /selcy-test and /selcy-sync work on a project you did not start from scratch. Observes, never invents."
 ---
 
 ## What this skill does
 
-The brownfield entry point. It is what you run when the project already exists and there is no `context/` bundle: a codebase you inherited, a project you are maintaining, a legacy app you are continuing, or your own project from before you used `@selcy-sdd`.
+The brownfield entry point. It is what you run when the project already exists and there is no `context/` bundle: a codebase you inherited, a project you are maintaining, a legacy app you are continuing, or your own project from before you used `/selcy-sdd`.
 
-`@selcy-sdd` interviews you and writes the bundle from your answers. `@selcy-audit` reads the code and writes the bundle from **what the code actually says**. Same output shape, opposite direction. Every skill downstream of the bundle works unchanged, because the files are identical.
+`/selcy-sdd` interviews you and writes the bundle from your answers. `/selcy-audit` reads the code and writes the bundle from **what the code actually says**. Same output shape, opposite direction. Every skill downstream of the bundle works unchanged, because the files are identical.
 
-It exists because the loop had exactly one door, and it was greenfield only. `@selcy-implement` stops and says "run `@selcy-sdd` first" when it finds no bundle, which is correct but useless on a codebase that has been running for two years. This skill is that door.
+It exists because the loop had exactly one door, and it was greenfield only. `/selcy-implement` stops and says "run `/selcy-sdd` first" when it finds no bundle, which is correct but useless on a codebase that has been running for two years. This skill is that door.
 
 ## The one rule that makes it safe
 
@@ -20,15 +20,15 @@ On a greenfield project the engineer's answers create the truth. On a brownfield
 
 - **OBSERVE**: anything the code, the config, the dependency manifest, the migrations, or the tests can tell you. This is nearly everything. Read it.
 - **ASK**: only what no file can answer, and only after you have looked. "What is the deploy target" is answered by the Dockerfile and the CI config, not by the engineer.
-- **NEVER INVENT**: if nothing in the repo settles a field, write `not evident from the repo` and say so in the report. Do not fill it with a sensible default and do not guess. A bundle that guesses is worse than a gap, because `@selcy-implement` will read the guess as a settled contract and build against it.
+- **NEVER INVENT**: if nothing in the repo settles a field, write `not evident from the repo` and say so in the report. Do not fill it with a sensible default and do not guess. A bundle that guesses is worse than a gap, because `/selcy-implement` will read the guess as a settled contract and build against it.
 
 A bundle with honest gaps is a map with blank spots. A bundle with invented facts is a map with wrong roads. Only one of them gets you lost.
 
 ## When to run it
 
-- **No `context/` bundle exists** and you want to work on this codebase with the selcy loop. Run it once, the same way you would run `@selcy-sdd` on a new project.
+- **No `context/` bundle exists** and you want to work on this codebase with the selcy loop. Run it once, the same way you would run `/selcy-sdd` on a new project.
 - **A `context/` bundle exists but you do not trust it.** Run with `verify` to compare the bundle against the repo and report where they disagree. Do not let it rewrite anything in that mode; it reports, you decide.
-- **Never alongside `@selcy-sdd`.** Two conventions must not both be seeded in one project. If a bundle exists and is trusted, use `@selcy-sync` to maintain it, not this skill.
+- **Never alongside `/selcy-sdd`.** Two conventions must not both be seeded in one project. If a bundle exists and is trusted, use `/selcy-sync` to maintain it, not this skill.
 
 ## Commands
 
@@ -41,7 +41,7 @@ A bundle with honest gaps is a map with blank spots. A bundle with invented fact
 Find the project root. A `context/` directory there means a bundle exists; route accordingly:
 
 - Bundle exists, argument is `verify` → Step 5 (verify mode, read only).
-- Bundle exists, no argument → stop. Ask: audit fresh and overwrite, or `verify` first? Never overwrite a bundle without asking; it may hold curated decisions the engineer wrote by hand, and `@selcy-sync` is the tool that maintains an existing bundle.
+- Bundle exists, no argument → stop. Ask: audit fresh and overwrite, or `verify` first? Never overwrite a bundle without asking; it may hold curated decisions the engineer wrote by hand, and `/selcy-sync` is the tool that maintains an existing bundle.
 - No bundle → continue to Step 1.
 
 Say in one line which route you took.
@@ -72,7 +72,7 @@ Dispatch sub-agents for the heavy reading. A large codebase is more than one con
 
 ## Step 2: Write the bundle, one file at a time
 
-Write the same files `@selcy-sdd` writes, in the same shape, so downstream skills need no adaptation:
+Write the same files `/selcy-sdd` writes, in the same shape, so downstream skills need no adaptation:
 
 - `AGENTS.md` at the **project root** — the read order. Last, because it points at the others. Root, not `context/`, because that is where agents auto-load it from.
 - `context/architecture-context.md` — stack table from the manifest, system boundaries from the service topology, storage model, auth model, invariants, and the env var table from `.env.example` or the compose file.
@@ -91,7 +91,7 @@ Rules that apply to every file:
 
 - **Quote, then label.** When you write a fact, it came from somewhere. Say where. A stack row with no source is a guess wearing a contract's clothes.
 - **Write the code as it is, not as it should be.** If the error handling is inconsistent across routes, `error-handling.md` says it is inconsistent and names the shapes it found. That is a useful contract, because it tells a builder exactly what they are working with. A cleaned up version is a lie a builder will trust.
-- **A gap is a finding, not a hole to fill.** No migrations directory is a finding about the migration rule. No tests is a finding about the testing pyramid. Write it down plainly; the engineer decides whether to fix it, and `@selcy-debt` is where it gets recorded.
+- **A gap is a finding, not a hole to fill.** No migrations directory is a finding about the migration rule. No tests is a finding about the testing pyramid. Write it down plainly; the engineer decides whether to fix it, and `/selcy-debt` is where it gets recorded.
 - **Never overwrite a file the engineer wrote by hand without asking.** If an `AGENTS.md` or a `README` already carries conventions, quote it into the bundle and credit it, rather than rewriting it in your own words. This applies to the root `AGENTS.md` too, which this skill writes: if one already exists and it does not carry the generated marker, ask before replacing it.
 
 ## Step 3: Ask only what the code cannot answer
@@ -103,7 +103,7 @@ After the survey, some fields will still be open. Ask them in **one batched pane
 - **Decisions the code deliberately punted on.** A config value that is still the framework default, a TODO on a security check, a feature behind a flag. Show the engineer what you found and ask whether it is settled or still open.
 - **Anything two files disagree about.** If the Dockerfile says one thing and the README says another, that is not a fact you can read; it is a decision the engineer has to make. Present both and ask.
 
-Every question is a decision panel with options and one marked `(recommended)`, the same as `@selcy-sdd`. Never a neutral menu, never a free field when concrete options exist.
+Every question is a decision panel with options and one marked `(recommended)`, the same as `/selcy-sdd`. Never a neutral menu, never a free field when concrete options exist.
 
 Do **not** ask:
 
@@ -118,8 +118,8 @@ In plain language, in this order:
 
 1. **What the bundle now says**, one line per file.
 2. **The gaps**, every field written as `not evident from the repo`, with the file and line you checked. This is the most useful part of the report: it is the map of what the engineer knows and the code does not.
-3. **The findings**, things the audit surfaced that are not gaps in the bundle but problems in the code: a security check that is missing, a test level that is absent, an inconsistency between two files, a migration story that does not exist. Each one is a candidate for `@selcy-debt`.
-4. **The exact next step.** Usually: open a new chat, run `@selcy-implement` on the first feature under Next Up, or `@selcy-debt` to record the findings before they get lost.
+3. **The findings**, things the audit surfaced that are not gaps in the bundle but problems in the code: a security check that is missing, a test level that is absent, an inconsistency between two files, a migration story that does not exist. Each one is a candidate for `/selcy-debt`.
+4. **The exact next step.** Usually: open a new chat, run `/selcy-implement` on the first feature under Next Up, or `/selcy-debt` to record the findings before they get lost.
 
 Keep it short. It is a handoff, not an assessment of the codebase.
 
@@ -133,18 +133,18 @@ For each file in the bundle, read it, then read the code it describes. Report on
 - **Missing**: the code has something the bundle never recorded. A new module, a new table, a new env var, a new service in the compose file.
 - **Wrong**: both name it, but they disagree. The bundle says the error shape is one thing and the routes return another.
 
-For each: the file and line in the bundle, the file and line in the code, and the recommended fix, which is almost always `@selcy-sync` for a drift in a standards file, or `@selcy-sdd specs <feature>` for a spec that no longer matches.
+For each: the file and line in the bundle, the file and line in the code, and the recommended fix, which is almost always `/selcy-sync` for a drift in a standards file, or `/selcy-sdd specs <feature>` for a spec that no longer matches.
 
-Never edit anything in verify mode. It is a report. `@selcy-sync` is the tool that acts on it.
+Never edit anything in verify mode. It is a report. `/selcy-sync` is the tool that acts on it.
 
 ## What this skill never does
 
 - **Never invents a fact to fill a gap.** `not evident from the repo` is a complete and correct answer.
 - **Never writes application code.** It reads it and writes about it.
 - **Never overwrites an existing bundle without asking**, and never overwrites a file the engineer wrote by hand without asking.
-- **Never runs `@selcy-sdd`.** That is the greenfield door. If the engineer wants a fresh interview on an existing codebase, tell them the interview will contradict the code and let them decide.
+- **Never runs `/selcy-sdd`.** That is the greenfield door. If the engineer wants a fresh interview on an existing codebase, tell them the interview will contradict the code and let them decide.
 - **Never edits the feature list or decides what to build next.** It reports what the repo shows is unfinished; what to do about it is the engineer's.
-- **Never fixes the findings it surfaces.** It reports them. Recording them is `@selcy-debt`, fixing them is `@selcy-implement` or `@selcy-debug`.
+- **Never fixes the findings it surfaces.** It reports them. Recording them is `/selcy-debt`, fixing them is `/selcy-implement` or `/selcy-debug`.
 
 ## Portability
 
